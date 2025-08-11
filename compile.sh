@@ -15,10 +15,3 @@ mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make
-
-cd ../../work_stealing
-mkdir build
-cd build
-cmake -DCMAKE_BUILD_TYPE=Release ..
-make
-cd ../..

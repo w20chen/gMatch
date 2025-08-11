@@ -98,6 +98,8 @@ calculateMean(ull *data, int num) {
         }
         sum += data[i];
     }
+    printf("zero_cnt = %d\n", zero_cnt);
+    printf("non_zero_cnt = %d\n", num - zero_cnt);
     return sum / (num - zero_cnt);
 }
 
@@ -157,6 +159,8 @@ printStatistics(const char *name, ull *arr, int len) {
     ull min_ = getMin(arr, len);
     ull max_ = getMax(arr, len);
     printf("Min: %lld\tMax: %lld\tMax-Min: %lld\n", min_, max_, max_ - min_);
+    printf("Min/Max: %.2lf\n", (double)min_ / max_);
+    printf("Mean/Max: %.2lf\n", mean / max_);
 
     double coefficientOfVariation = sqrt(variance) / mean;
     printf("CV: %.4lf\n", coefficientOfVariation);

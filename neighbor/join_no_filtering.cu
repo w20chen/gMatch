@@ -98,7 +98,7 @@ init_dfs_stacks(
         e_ptr->cand_set[0] = min_set;
         e_ptr->cand_len[0] = min_len;
 
-        e_ptr->unroll_size = 1;
+        e_ptr->cand_len[1] = -1;
         e_ptr->start_idx_within_set = 0;
         e_ptr->start_set_idx = 0;
     }
@@ -181,7 +181,7 @@ dfs_kernel_no_filtering(
             int lane_v = -1;
 
             int prefix_sum = -e_ptr->start_idx_within_set;
-            for (int i = e_ptr->start_set_idx; i < e_ptr->unroll_size; i++) {
+            for (int i = e_ptr->start_set_idx; e_ptr->cand_len[i] != -1; i++) {
                 prefix_sum += e_ptr->cand_len[i];
                 if (prefix_sum > lane_id) {
                     lane_parent_idx = i;
@@ -203,7 +203,7 @@ dfs_kernel_no_filtering(
                 else if (lane_idx_within_set == e_ptr->cand_len[lane_parent_idx] - 1) {
                     e_ptr->start_set_idx = lane_parent_idx + 1;
                     e_ptr->start_idx_within_set = 0;
-                    if (e_ptr->start_set_idx == e_ptr->unroll_size) {
+                    if (e_ptr->cand_len[e_ptr->start_set_idx] == -1) {
                         e_ptr->start_set_idx = -1;
                     }
                 }
@@ -354,7 +354,7 @@ dfs_kernel_no_filtering(
                     stk_elem *new_e_ptr = &this_stk_elem[next_u];
 
                     if (lane_id == 0) {
-                        new_e_ptr->unroll_size = __popc(flag_mask);
+                        new_e_ptr->cand_len[__popc(flag_mask)] = -1;
                     }
                     __syncwarp();
 
@@ -494,7 +494,7 @@ dfs_kernel_no_filtering_clique(
             int lane_v = -1;
 
             int prefix_sum = -e_ptr->start_idx_within_set;
-            for (int i = e_ptr->start_set_idx; i < e_ptr->unroll_size; i++) {
+            for (int i = e_ptr->start_set_idx; e_ptr->cand_len[i] != -1; i++) {
                 prefix_sum += e_ptr->cand_len[i];
                 if (prefix_sum > lane_id) {
                     lane_parent_idx = i;
@@ -516,7 +516,7 @@ dfs_kernel_no_filtering_clique(
                 else if (lane_idx_within_set == e_ptr->cand_len[lane_parent_idx] - 1) {
                     e_ptr->start_set_idx = lane_parent_idx + 1;
                     e_ptr->start_idx_within_set = 0;
-                    if (e_ptr->start_set_idx == e_ptr->unroll_size) {
+                    if (e_ptr->cand_len[e_ptr->start_set_idx] == -1) {
                         e_ptr->start_set_idx = -1;
                     }
                 }
@@ -605,7 +605,7 @@ dfs_kernel_no_filtering_clique(
                     stk_elem *new_e_ptr = &this_stk_elem[next_u];
 
                     if (lane_id == 0) {
-                        new_e_ptr->unroll_size = __popc(flag_mask);
+                        new_e_ptr->cand_len[__popc(flag_mask)] = -1;
                     }
                     __syncwarp();
 

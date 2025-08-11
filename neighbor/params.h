@@ -7,8 +7,6 @@
 
 // #define NLF_FILTER   // comment this out if you do not want to use NLF filter
 
-// #define DEGREE_FILTER_ON_THE_FLY
-
 #define SYMMETRY_BREAKING
 
 #define EXPECT_BEGIN_NUM 1e7

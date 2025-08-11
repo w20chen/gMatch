@@ -36,6 +36,7 @@ init_dfs_stacks(
 
         for (int depth = 0; depth < begin_len; depth++) {
             this_stk_elem_fixed[depth].mapped_v[lane_id] = this_partial_matching[depth];
+            this_stk_elem_fixed[depth].mapped_v_nbr_set[lane_id] = cg.get_nbr(this_stk_elem_fixed[depth].mapped_v[lane_id], this_stk_elem_fixed[depth].mapped_v_nbr_len[lane_id]);
         }
 
         // Calculate the minimum length of the candidate set for the current partial matching
@@ -48,12 +49,10 @@ init_dfs_stacks(
         while (bn_mask) {
             int uu = __ffs(bn_mask) - 1;
             bn_mask &= ~(1u << uu);
-            int vv = this_partial_matching[uu];
-            int this_len = 0;
-            int *this_set = cg.get_nbr(vv, this_len);
+            int this_len = this_stk_elem_fixed[uu].mapped_v_nbr_len[lane_id];
             if (this_len < min_len) {
                 min_len = this_len;
-                min_set = this_set;
+                min_set = this_stk_elem_fixed[uu].mapped_v_nbr_set[lane_id];
             }
         }
 
@@ -63,67 +62,14 @@ init_dfs_stacks(
 
     if (lane_id == 0) {
         if (this_offset + UNROLL_MIN > partial_matching_cnt) {
-            e_ptr->unroll_size = partial_matching_cnt - this_offset;
+            e_ptr->cand_len[partial_matching_cnt - this_offset] = -1;
         }
         else {
-            e_ptr->unroll_size = UNROLL_MIN;
+            e_ptr->cand_len[UNROLL_MIN] = -1;
         }
 
         e_ptr->start_idx_within_set = 0;
         e_ptr->start_set_idx = 0;
-    }
-    __syncwarp();
-}
-
-
-static __device__ void
-init_dfs_stacks_with_one_edge(
-    candidate_graph_GPU cg,
-    stk_elem_fixed *this_stk_elem_fixed,
-    stk_elem *this_stk_elem,
-    MemManager *d_MM,
-    int partial_matching_id,
-    int lane_id,
-    bool adjacent_0,    // if 2 is adjacent to 0
-    bool adjacent_1     // if 2 is adjacent to 1
-) {
-
-    if (lane_id == 0) {
-        int *this_partial_matching = d_MM->get_partial(partial_matching_id);
-
-        int v0 = this_partial_matching[0];
-        int v1 = this_partial_matching[1];
-
-        this_stk_elem_fixed[0].mapped_v[0] = v0;
-        this_stk_elem_fixed[1].mapped_v[0] = v1;
-
-        int min_len = INT32_MAX;
-        int *min_set = nullptr;
-
-        if (adjacent_0) {
-            int this_len = 0;
-            int *this_set = cg.get_nbr(v0, this_len);
-            if (min_len > this_len) {
-                min_len = this_len;
-                min_set = this_set;
-            }
-        }
-
-        if (adjacent_1) {
-            int this_len = 0;
-            int *this_set = cg.get_nbr(v1, this_len);
-            if (min_len > this_len) {
-                min_len = this_len;
-                min_set = this_set;
-            }
-        }
-
-        stk_elem *e_ptr = this_stk_elem + 2;
-        e_ptr->unroll_size = 1;
-        e_ptr->start_idx_within_set = 0;
-        e_ptr->start_set_idx = 0;
-        e_ptr->cand_set[0] = min_set;
-        e_ptr->cand_len[0] = min_len;
     }
     __syncwarp();
 }
@@ -203,7 +149,7 @@ dfs_kernel(
             int lane_v = -1;
 
             int prefix_sum = -e_ptr->start_idx_within_set;
-            for (int i = e_ptr->start_set_idx; i < e_ptr->unroll_size; i++) {
+            for (int i = e_ptr->start_set_idx; e_ptr->cand_len[i] != -1; i++) {
                 prefix_sum += e_ptr->cand_len[i];
                 if (prefix_sum > lane_id) {
                     lane_parent_idx = i;
@@ -245,7 +191,7 @@ dfs_kernel(
                 else if (lane_idx_within_set == e_ptr->cand_len[lane_parent_idx] - 1) {
                     e_ptr->start_set_idx = lane_parent_idx + 1;
                     e_ptr->start_idx_within_set = 0;
-                    if (e_ptr->start_set_idx == e_ptr->unroll_size) {
+                    if (e_ptr->cand_len[e_ptr->start_set_idx] == -1) {
                         e_ptr->start_set_idx = -1;
                     }
                 }
@@ -332,47 +278,6 @@ dfs_kernel(
                         j--;
                     }
                 }
-
-                // for (; j >= begin_len; j--) {
-                //     int vv = this_stk_elem[j].mapped_v[cur_parent];
-                //     cur_parent = this_stk_elem[j].parent_idx[cur_parent];
-                //     if (vv == lane_v) {
-                //         flag = false;
-                //         break;
-                //     }
-                //     if (bn_mask & (1 << j)) {
-                //         int this_len = 0;
-                //         int *this_set = cg.get_nbr(vv, this_len);
-                //         if (this_set == e_ptr->cand_set[lane_parent_idx]) {
-                //             continue;
-                //         }
-                //         if (false == binary_search<int>(this_set, this_len, lane_v)) {
-                //             flag = false;
-                //             break;
-                //         }
-                //     }
-                // }
-
-                // if (flag) {
-                //     for (; j >= 0; j--) {
-                //         int vv = this_stk_elem_fixed[j].mapped_v[cur_parent];
-                //         if (vv == lane_v) {
-                //             flag = false;
-                //             break;
-                //         }
-                //         if (bn_mask & (1 << j)) {
-                //             int this_len = 0;
-                //             int *this_set = cg.get_nbr(vv, this_len);
-                //             if (this_set == e_ptr->cand_set[lane_parent_idx]) {
-                //                 continue;
-                //             }
-                //             if (false == binary_search<int>(this_set, this_len, lane_v)) {
-                //                 flag = false;
-                //                 break;
-                //             }
-                //         }
-                //     }
-                // }
             }
 
             unsigned int flag_mask = __ballot_sync(FULL_MASK, flag);
@@ -421,7 +326,7 @@ dfs_kernel(
                     stk_elem *new_e_ptr = &this_stk_elem[next_u];
 
                     if (lane_id == 0) {
-                        new_e_ptr->unroll_size = __popc(flag_mask);
+                        new_e_ptr->cand_len[__popc(flag_mask)] = -1;
                     }
                     __syncwarp();
 
@@ -515,9 +420,6 @@ dfs_kernel_sym(
 
     __shared__ uint32_t s_partial_order[32];
     __shared__ uint32_t s_bknbrs[32];
-#ifdef DEGREE_FILTER_ON_THE_FLY
-    __shared__ int s_qdegree[32];
-#endif
 #ifndef UNLABELED
     __shared__ int s_qlabel[32];
 #endif
@@ -530,12 +432,6 @@ dfs_kernel_sym(
         s_partial_order[threadIdx.x] = d_partial_order[threadIdx.x];
         s_bknbrs[threadIdx.x] = Q.d_bknbrs_[threadIdx.x];
     }
-
-#ifdef DEGREE_FILTER_ON_THE_FLY
-    if (threadIdx.x < Q.vcount()) {
-        s_qdegree[threadIdx.x] = Q.d_degree_[threadIdx.x];
-    }
-#endif
 
 #ifndef UNLABELED
     if (threadIdx.x < Q.vcount()) {
@@ -587,7 +483,7 @@ dfs_kernel_sym(
             int lane_v = -1;
 
             int prefix_sum = -e_ptr->start_idx_within_set;
-            for (int i = e_ptr->start_set_idx; i < e_ptr->unroll_size; i++) {
+            for (int i = e_ptr->start_set_idx; e_ptr->cand_len[i] != -1; i++) {
                 prefix_sum += e_ptr->cand_len[i];
                 if (prefix_sum > lane_id) {
                     lane_parent_idx = i;
@@ -604,12 +500,6 @@ dfs_kernel_sym(
 
 #ifndef UNLABELED
             if (flag && s_qlabel[this_u] != G.d_label_[lane_v]) {
-                flag = false;
-            }
-#endif
-
-#ifdef DEGREE_FILTER_ON_THE_FLY
-            if (flag && s_qdegree[this_u] > G.d_degree_[lane_v]) {
                 flag = false;
             }
 #endif
@@ -635,7 +525,7 @@ dfs_kernel_sym(
                 else if (lane_idx_within_set == e_ptr->cand_len[lane_parent_idx] - 1) {
                     e_ptr->start_set_idx = lane_parent_idx + 1;
                     e_ptr->start_idx_within_set = 0;
-                    if (e_ptr->start_set_idx == e_ptr->unroll_size) {
+                    if (e_ptr->cand_len[e_ptr->start_set_idx] == -1) {
                         e_ptr->start_set_idx = -1;
                     }
                 }
@@ -682,6 +572,8 @@ dfs_kernel_sym(
                         break;
                     }
 
+                    int old_cur_parent = cur_parent;
+
                     if (j < begin_len) {
                         vv = this_stk_elem_fixed[j].mapped_v[cur_parent];
                     }
@@ -703,7 +595,15 @@ dfs_kernel_sym(
                     }
 
                     int this_len = 0;
-                    int *this_set = cg.get_nbr(vv, this_len);
+                    int *this_set = nullptr;
+
+                    if (j + 1 < begin_len) {
+                        this_set = this_stk_elem_fixed[j + 1].mapped_v_nbr_set[old_cur_parent];
+                        this_len = this_stk_elem_fixed[j + 1].mapped_v_nbr_len[old_cur_parent];
+                    }
+                    else {
+                        this_set = cg.get_nbr(vv, this_len);
+                    }
 
                     if (this_set == e_ptr->cand_set[lane_parent_idx]) {
                         continue;
@@ -786,7 +686,7 @@ dfs_kernel_sym(
                     stk_elem *new_e_ptr = &this_stk_elem[next_u];
 
                     if (lane_id == 0) {
-                        new_e_ptr->unroll_size = __popc(flag_mask);
+                        new_e_ptr->cand_len[__popc(flag_mask)] = -1;
                     }
                     __syncwarp();
 
@@ -820,15 +720,16 @@ dfs_kernel_sym(
                                 j--;
                             }
 
+                            int this_len = 0;
+                            int *this_set = nullptr;
+
                             if (uu < begin_len) {
-                                vv = this_stk_elem_fixed[uu].mapped_v[cur_parent];
+                                this_len = this_stk_elem_fixed[uu].mapped_v_nbr_len[cur_parent];
+                                this_set = this_stk_elem_fixed[uu].mapped_v_nbr_set[cur_parent];
                             }
                             else {
-                                vv = this_stk_elem[uu].mapped_v[cur_parent];
+                                this_set = cg.get_nbr(this_stk_elem[uu].mapped_v[cur_parent], this_len);
                             }
-
-                            int this_len = 0;
-                            int *this_set = cg.get_nbr(vv, this_len);
 
                             if (min_len > this_len) {
                                 min_len = this_len;
@@ -871,20 +772,10 @@ dfs_kernel_clique(
     int warp_id_within_blk = warp_id % warpsPerBlock;
     int lane_id = tid % warpSize;
 
-#ifdef DEGREE_FILTER_ON_THE_FLY
-    __shared__ int s_qdegree[32];
-#endif
-
     extern __shared__ char shared_mem[];
 
     stk_elem_fixed *s_stk_elem_fixed = (stk_elem_fixed *)shared_mem;
     stk_elem *s_stk_elem = (stk_elem *)(s_stk_elem_fixed + warpsPerBlock * begin_len);
-
-#ifdef DEGREE_FILTER_ON_THE_FLY
-    if (threadIdx.x < Q.vcount()) {
-        s_qdegree[threadIdx.x] = Q.d_degree_[threadIdx.x];
-    }
-#endif
 
 #ifdef BALANCE_CNT
     if (lane_id == 0) {
@@ -921,6 +812,9 @@ dfs_kernel_clique(
             int tmp = this_stk_elem_fixed[0].mapped_v[0];
             this_stk_elem_fixed[0].mapped_v[0] = this_stk_elem_fixed[1].mapped_v[0];
             this_stk_elem_fixed[1].mapped_v[0] = tmp;
+
+            this_stk_elem_fixed[0].mapped_v_nbr_set[0] = cg.get_nbr(this_stk_elem_fixed[0].mapped_v[0], this_stk_elem_fixed[0].mapped_v_nbr_len[0]);
+            this_stk_elem_fixed[1].mapped_v_nbr_set[0] = cg.get_nbr(this_stk_elem_fixed[1].mapped_v[0], this_stk_elem_fixed[1].mapped_v_nbr_len[0]);
         }
 
         int this_stk_len = begin_len + 1;
@@ -935,7 +829,7 @@ dfs_kernel_clique(
             int lane_v = -1;
 
             int prefix_sum = -e_ptr->start_idx_within_set;
-            for (int i = e_ptr->start_set_idx; i < e_ptr->unroll_size; i++) {
+            for (int i = e_ptr->start_set_idx; e_ptr->cand_len[i] != -1; i++) {
                 prefix_sum += e_ptr->cand_len[i];
                 if (prefix_sum > lane_id) {
                     lane_parent_idx = i;
@@ -949,12 +843,6 @@ dfs_kernel_clique(
             if (lane_v == -1) {
                 flag = false;
             }
-
-#ifdef DEGREE_FILTER_ON_THE_FLY
-            if (flag && s_qdegree[this_u] > G.d_degree_[lane_v]) {
-                flag = false;
-            }
-#endif
 
 #ifdef IDLE_CNT
             unsigned idle_mask = __ballot_sync(FULL_MASK, lane_v == -1);
@@ -977,7 +865,7 @@ dfs_kernel_clique(
                 else if (lane_idx_within_set == e_ptr->cand_len[lane_parent_idx] - 1) {
                     e_ptr->start_set_idx = lane_parent_idx + 1;
                     e_ptr->start_idx_within_set = 0;
-                    if (e_ptr->start_set_idx == e_ptr->unroll_size) {
+                    if (e_ptr->cand_len[e_ptr->start_set_idx] == -1) {
                         e_ptr->start_set_idx = -1;
                     }
                 }
@@ -992,7 +880,7 @@ dfs_kernel_clique(
 
                 for (int uu = this_stk_len - 2; uu >= 0; uu--) {
                     int vv;
-
+                    int old_cur_parent = cur_parent;
                     if (uu < begin_len) {
                         vv = this_stk_elem_fixed[uu].mapped_v[cur_parent];
                     }
@@ -1007,7 +895,15 @@ dfs_kernel_clique(
                     }
 
                     int this_len = 0;
-                    int *this_set = cg.get_nbr(vv, this_len);
+                    int *this_set = nullptr;
+
+                    if (uu < begin_len) {
+                        this_len = this_stk_elem_fixed[uu].mapped_v_nbr_len[old_cur_parent];
+                        this_set = this_stk_elem_fixed[uu].mapped_v_nbr_set[old_cur_parent];
+                    }
+                    else {
+                        this_set = cg.get_nbr(vv, this_len);
+                    }
 
                     if (this_set == e_ptr->cand_set[lane_parent_idx]) {
                         continue;
@@ -1056,17 +952,15 @@ dfs_kernel_clique(
                     if (lane_id == 0) {
                         this_stk_elem[this_stk_len].start_set_idx = 0;
                         this_stk_elem[this_stk_len].start_idx_within_set = 0;
-                        this_stk_len++;
                     }
-                    this_stk_len = __shfl_sync(FULL_MASK, this_stk_len, 0);
+                    this_stk_len++;
 
                     // "e_ptr" is the pointer of previous stack top
                     // "new_e_ptr" is the pointer of the level we are about to search
-                    int next_u = this_stk_len - 1;
-                    stk_elem *new_e_ptr = &this_stk_elem[next_u];
+                    stk_elem *new_e_ptr = &this_stk_elem[this_stk_len - 1];
 
                     if (lane_id == 0) {
-                        new_e_ptr->unroll_size = __popc(flag_mask);
+                        new_e_ptr->cand_len[__popc(flag_mask)] = -1;
                     }
                     __syncwarp();
 
@@ -1227,7 +1121,7 @@ bfs_end:
     int dynamic_shared_size = warpsPerBlock * (Q.vcount() - l) * sizeof(stk_elem)
                               + warpsPerBlock * l * sizeof(stk_elem_fixed);
 
-    printf("Shared memory usage: %.2f KB per thread block\n", (dynamic_shared_size + (int)sizeof(int) * warpsPerBlock) / 1024.0);
+    printf("Shared memory usage: %.2f KB per thread block\n", dynamic_shared_size / 1024.);
     printf("DFS kernel theoretical occupancy %.2f%%\n", calculateOccupancy((const void *)dfs_kernel, threadsPerBlock, dynamic_shared_size));
 
     TIME_START();
@@ -1410,7 +1304,7 @@ bfs_end:
     int dynamic_shared_size = warpsPerBlock * (Q.vcount() - l) * sizeof(stk_elem)
                               + warpsPerBlock * l * sizeof(stk_elem_fixed);
 
-    printf("Shared memory usage: %.2f KB per thread block\n", (dynamic_shared_size + (int)sizeof(int) * warpsPerBlock) / 1024.0);
+    printf("Shared memory usage: %.2f KB per thread block\n", dynamic_shared_size / 1024.);
     printf("DFS kernel theoretical occupancy %.2f%%\n", calculateOccupancy((const void *)dfs_kernel, threadsPerBlock, dynamic_shared_size));
 
     TIME_START();

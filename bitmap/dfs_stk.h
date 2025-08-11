@@ -9,7 +9,7 @@ struct stk_elem_fixed {
 };
 
 
-// Allocated on global memory (or shared memory)
+// Allocated on shared memory
 struct stk_elem_cand {
     int cand_set[UNROLL_MAX + 1];
     CandLen_t cand_len[UNROLL_MAX + 1];
@@ -20,9 +20,7 @@ struct stk_elem_cand {
 struct stk_elem {
     int mapped_v[UNROLL_MAX + 1];
 
-#ifdef STK_ELEM_CAND_ON_SHARED
     stk_elem_cand cand;
-#endif
 
     CandLen_t mapped_idx[UNROLL_MAX + 1];
     CandLen_t start_idx_within_set;

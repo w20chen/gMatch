@@ -109,10 +109,6 @@ candidate_graph::candidate_graph(Graph &q, Graph &g, bool simple_filter) : Q(q),
 
 
 candidate_graph::candidate_graph(Graph &q, Graph &g, bool simple_filter, const std::vector<int> &represent) : Q(q), G(g) {
-    for (int i = 0; i < represent.size(); i++) {
-        printf("%d:%d\n", i, represent[i]);
-    }
-
     cand.resize(Q.vcount());
     for (auto &vec : cand) {
         vec.reserve(1e6);

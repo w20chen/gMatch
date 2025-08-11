@@ -154,9 +154,7 @@ public:
 
     unsigned *d_bknbrs_;
 
-// #ifdef DEGREE_FILTER_ON_THE_FLY
     int *d_degree_;
-// #endif
 
 public:
     __device__ __host__ __forceinline__ int
@@ -181,10 +179,8 @@ public:
 
         d_bknbrs_ = nullptr;
 
-// #ifdef DEGREE_FILTER_ON_THE_FLY
         cudaCheck(cudaMalloc(&d_degree_, sizeof(int) * vcount_));
         cudaCheck(cudaMemcpy(d_degree_, G.deg_.data(), sizeof(int) * vcount_, cudaMemcpyHostToDevice));
-// #endif
 
         if (is_query) {
             // Create index for backward neighbors.

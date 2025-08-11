@@ -14,7 +14,7 @@
 #define CandLen_t int
 #endif
 
-#define STK_ELEM_CAND_ON_SHARED
+#define LOCAL_WORK_STEALING
 
 #define UNROLL_MIN 4
 #define UNROLL_MAX 32

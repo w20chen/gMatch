@@ -2,6 +2,7 @@
 #include "candidate.h"
 #include "params.h"
 #include "dfs_stk.h"
+#include "idle_queue.h"
 
 #ifdef IDLE_CNT
 __device__ static ull sample_cnt;
@@ -10,7 +11,10 @@ __device__ static ull idle_cnt;
 
 #ifdef BALANCE_CNT
 __device__ static ull compute_cnt[warpNum];
+__device__ static ull start_time[warpNum];
 __device__ static ull warp_time[warpNum];
+__device__ static ull steal_cnt;
+__device__ static ull first_finish;
 #endif
 
 static __host__ bool
@@ -102,15 +106,16 @@ dfs_kernel(
     int partial_matching_cnt,           // Total number of the beginning partial results
     int *begin_offset,                  // Atomic variable denoting the next unsolved partial matching
     const int begin_len,                // Length of the beginning partial results
-    stk_elem_cand *d_stk_elem_cand,     // Candidate set pointers and lengths allocated on global memory
     const unsigned label_mask,
-    const unsigned backward_mask
+    const unsigned backward_mask,
+    idle_queue *d_Q                     // An array of idle queues allocated on the global memory
 ) {
 
     int tid = threadIdx.x + blockIdx.x * blockDim.x;    // Global thread id
     int warp_id = tid / warpSize;                       // Global warp id
     int warp_id_within_blk = warp_id % warpsPerBlock;   // Warp id within the block
     int lane_id = tid % warpSize;                       // Lane id within the warp
+    idle_queue *this_queue = d_Q + blockIdx.x;          // Idle queue of this block
 
     __shared__ int s_len[warpsPerBlock];
     extern __shared__ char shared_mem[];
@@ -122,22 +127,24 @@ dfs_kernel(
     bool assigned = false;
     if (lane_id == 0) {
         compute_cnt[warp_id] = 0;
-        warp_time[warp_id] = clock64();
+        warp_time[warp_id] = 0;
+        start_time[warp_id] = clock64();
     }
+#endif
+
+#ifdef LOCAL_WORK_STEALING
+    __shared__ int unfinished;              // Number of warps that have unfinished tasks
+    __shared__ char states[warpsPerBlock];  // State of a warp (0 busy, 1 idle)
+
+    unfinished = warpsPerBlock;
+    states[warp_id_within_blk] = 0;
 #endif
 
     // Each warp has one stack
     int *this_stk_len = s_len + warp_id_within_blk;
     stk_elem_fixed *this_stk_elem_fixed = s_stk_elem_fixed + warp_id_within_blk * begin_len;
     stk_elem *this_stk_elem = s_stk_elem + warp_id_within_blk * (Q.vcount() - begin_len) - begin_len;
-    stk_elem_cand *first_cand = nullptr;
-
-#ifndef STK_ELEM_CAND_ON_SHARED
-    stk_elem_cand *this_stk_elem_cand = d_stk_elem_cand + warp_id * (Q.vcount() - begin_len) - begin_len;
-    first_cand = &this_stk_elem_cand[begin_len];
-#else
-    first_cand = &this_stk_elem[begin_len].cand;
-#endif
+    stk_elem_cand *first_cand = &this_stk_elem[begin_len].cand;
 
     __syncthreads();
 
@@ -153,10 +160,6 @@ dfs_kernel(
             break;
         }
 
-#ifdef BALANCE_CNT
-        assigned = true;
-#endif
-
         // Initialize the stack with "UNROLL_MIN" beginning partial matchings
         init_dfs_stacks(Q, cg, this_stk_len, this_stk_elem_fixed,
                         this_stk_elem, first_cand, d_MM,
@@ -164,13 +167,73 @@ dfs_kernel(
                         lane_id, begin_len);
 
         while (*this_stk_len > begin_len) {
+
+restart:
+
+#ifdef BALANCE_CNT
+            assigned = true;
+#endif
+
             int this_u = *this_stk_len - 1;
             stk_elem *e_ptr = &this_stk_elem[this_u];
-#ifndef STK_ELEM_CAND_ON_SHARED
-            stk_elem_cand *cand_ptr = &this_stk_elem_cand[this_u];
-#else
             stk_elem_cand *cand_ptr = &e_ptr->cand;
+
+#ifdef LOCAL_WORK_STEALING
+            // if there are idle warps within the thread block
+            if (warpsPerBlock > unfinished) {
+                for (int depth = begin_len; depth <= begin_len + 3 && depth <= *this_stk_len - 1; depth++) {
+                    int unroll_size = 0;
+                    for (; unroll_size < UNROLL_MAX; unroll_size++) {
+                        if (this_stk_elem[depth].cand.cand_len[unroll_size] == -1) {
+                            break;
+                        }
+                    }
+
+                    // if this level is okay to split
+                    if (this_stk_elem[depth].start_set_idx != -1 && unroll_size >= this_stk_elem[depth].start_set_idx + 2) {
+                        if (lane_id == 0) {
+                            int half_size = (unroll_size - this_stk_elem[depth].start_set_idx) / 2;
+                            int requested_id = 0;
+                            bool flag = this_queue->dequeue(&requested_id);
+                            // the idle queue assures that only this warp can obtain `requested_id`
+
+                            if (flag) {
+                                stk_elem_fixed *that_stk_elem_fixed = s_stk_elem_fixed + requested_id * begin_len;
+                                for (int i = 0; i < begin_len; i++) {
+                                    that_stk_elem_fixed[i] = this_stk_elem_fixed[i];
+                                }
+
+                                stk_elem *that_stk_elem = s_stk_elem + requested_id * (Q.vcount() - begin_len) - begin_len;
+
+                                for (int i = begin_len; i <= depth; i++) {
+                                    that_stk_elem[i] = this_stk_elem[i];
+                                    that_stk_elem[i].start_set_idx = -1;
+                                }
+
+                                that_stk_elem[depth].start_set_idx = unroll_size - half_size;
+                                that_stk_elem[depth].start_idx_within_set = 0;
+                                this_stk_elem[depth].cand.cand_len[unroll_size - half_size] = -1;
+
+                                s_len[requested_id] = depth + 1;
+
+                                __threadfence();
+                                states[requested_id] = 0;
+
+                                __threadfence();
+                                atomicAdd(&unfinished, 1);
+#ifdef BALANCE_CNT
+                                atomicAdd(&steal_cnt, 1);
 #endif
+                            }
+                        }
+                        __syncwarp();
+                        // break no matter successfully dequeue or not
+                        break;
+                    }
+                }
+            }
+#endif
+
             // Process the candidate set of the current stack element
             int lane_parent_idx = -1;
             int lane_idx_within_set = -1;
@@ -387,11 +450,7 @@ dfs_kernel(
                     // "new_e_ptr" is the pointer of the level we are about to search
                     int next_u = *this_stk_len - 1;
                     stk_elem *new_e_ptr = &this_stk_elem[next_u];
-#ifndef STK_ELEM_CAND_ON_SHARED
-                    stk_elem_cand *new_cand_ptr = &this_stk_elem_cand[next_u];
-#else
                     stk_elem_cand *new_cand_ptr = &new_e_ptr->cand;
-#endif
 
                     if (lane_id == 0) {
                         new_e_ptr->cand.cand_len[__popc(flag_mask)] = -1;
@@ -475,8 +534,62 @@ dfs_kernel(
 
 #ifdef BALANCE_CNT
     if (lane_id == 0) {
+        warp_time[warp_id] = clock64();
+        ull duration = (warp_time[warp_id] - start_time[warp_id]) / 1e6;
+        atomicCAS(&first_finish, 0, duration);
+    }
+    __syncwarp();
+#endif
+
+#ifdef LOCAL_WORK_STEALING
+    bool leave = false;
+    if (lane_id == 0) {
+        if (this_queue->length() >= unfinished + 2) {
+            leave = true;
+        }
+        else {
+            states[warp_id_within_blk] = 1;
+            __threadfence();
+            this_queue->enqueue(warp_id_within_blk);
+        }
+        atomicSub(&unfinished, 1);
+    }
+    leave = __shfl_sync(FULL_MASK, leave, 0);
+    
+    int sleep_time = 10;
+
+    if (leave) {
+        goto end;
+    }
+
+    while (unfinished > 0) {
+        bool restart_flag = false;
+        if (lane_id == 0) {
+            if (states[warp_id_within_blk] == 0) {
+                restart_flag = true;
+            }
+        }
+        restart_flag = __shfl_sync(FULL_MASK, restart_flag, 0);
+        if (restart_flag) {
+            goto restart;
+        }
+
+        sleep_time *= 2;
+        if (sleep_time > 1000) {
+            sleep_time = 1000;
+        }
+        __nanosleep(sleep_time);
+    }
+#endif
+
+end:
+
+#ifdef BALANCE_CNT
+    if (lane_id == 0) {
         if (assigned) {
-            warp_time[warp_id] = (clock64() - warp_time[warp_id]) / 1e6;
+            warp_time[warp_id] = static_cast<ull>(
+                                     static_cast<double>(warp_time[warp_id] - start_time[warp_id]) / 1e6
+                                 );
         }
         else {
             warp_time[warp_id] = 0;
@@ -495,16 +608,17 @@ dfs_kernel_sym(
     int partial_matching_cnt,
     int *begin_offset,
     const int begin_len,
-    stk_elem_cand *d_stk_elem_cand,
     const unsigned label_mask,
     const unsigned backward_mask,
-    int *d_partial_order
+    int *d_partial_order,
+    idle_queue *d_Q
 ) {
 
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
     int warp_id = tid / warpSize;
     int warp_id_within_blk = warp_id % warpsPerBlock;
     int lane_id = tid % warpSize;
+    idle_queue *this_queue = d_Q + blockIdx.x;          // Idle queue of this block
 
     __shared__ int s_len[warpsPerBlock];
     __shared__ uint32_t s_partial_order[32];
@@ -521,21 +635,23 @@ dfs_kernel_sym(
     bool assigned = false;
     if (lane_id == 0) {
         compute_cnt[warp_id] = 0;
-        warp_time[warp_id] = clock64();
+        warp_time[warp_id] = 0;
+        start_time[warp_id] = clock64();
     }
+#endif
+
+#ifdef LOCAL_WORK_STEALING
+    __shared__ int unfinished;              // Number of warps that have unfinished tasks
+    __shared__ char states[warpsPerBlock];  // State of a warp (0 busy, 1 idle)
+
+    unfinished = warpsPerBlock;
+    states[warp_id_within_blk] = 0;
 #endif
 
     int *this_stk_len = s_len + warp_id_within_blk;
     stk_elem_fixed *this_stk_elem_fixed = s_stk_elem_fixed + warp_id_within_blk * begin_len;
     stk_elem *this_stk_elem = s_stk_elem + warp_id_within_blk * (Q.vcount() - begin_len) - begin_len;
-    stk_elem_cand *first_cand = nullptr;
-
-#ifndef STK_ELEM_CAND_ON_SHARED
-    stk_elem_cand *this_stk_elem_cand = d_stk_elem_cand + warp_id * (Q.vcount() - begin_len) - begin_len;
-    first_cand = &this_stk_elem_cand[begin_len];
-#else
-    first_cand = &this_stk_elem[begin_len].cand;
-#endif
+    stk_elem_cand *first_cand = &this_stk_elem[begin_len].cand;
 
     __syncthreads();
 
@@ -551,23 +667,79 @@ dfs_kernel_sym(
             break;
         }
 
-#ifdef BALANCE_CNT
-        assigned = true;
-#endif
-
         init_dfs_stacks(Q, cg, this_stk_len, this_stk_elem_fixed,
                         this_stk_elem, first_cand, d_MM,
                         this_offset, partial_matching_cnt,
                         lane_id, begin_len);
 
         while (*this_stk_len > begin_len) {
+
+restart:
+
+#ifdef BALANCE_CNT
+            assigned = true;
+#endif
+
             int this_u = *this_stk_len - 1;
             stk_elem *e_ptr = &this_stk_elem[this_u];
-#ifndef STK_ELEM_CAND_ON_SHARED
-            stk_elem_cand *cand_ptr = &this_stk_elem_cand[this_u];
-#else
             stk_elem_cand *cand_ptr = &e_ptr->cand;
+
+#ifdef LOCAL_WORK_STEALING
+            // if there are idle warps within the thread block
+            if (warpsPerBlock > unfinished) {
+                for (int depth = begin_len; depth <= begin_len + 3 && depth <= *this_stk_len - 1; depth++) {
+                    int unroll_size = 0;
+                    for (; unroll_size < UNROLL_MAX; unroll_size++) {
+                        if (this_stk_elem[depth].cand.cand_len[unroll_size] == -1) {
+                            break;
+                        }
+                    }
+
+                    // if this level is okay to split
+                    if (this_stk_elem[depth].start_set_idx != -1 && unroll_size >= this_stk_elem[depth].start_set_idx + 2) {
+                        if (lane_id == 0) {
+                            int half_size = (unroll_size - this_stk_elem[depth].start_set_idx) / 2;
+                            int requested_id = 0;
+                            bool flag = this_queue->dequeue(&requested_id);
+                            // the idle queue assures that only this warp can obtain `requested_id`
+
+                            if (flag) {
+                                stk_elem_fixed *that_stk_elem_fixed = s_stk_elem_fixed + requested_id * begin_len;
+                                for (int i = 0; i < begin_len; i++) {
+                                    that_stk_elem_fixed[i] = this_stk_elem_fixed[i];
+                                }
+
+                                stk_elem *that_stk_elem = s_stk_elem + requested_id * (Q.vcount() - begin_len) - begin_len;
+
+                                for (int i = begin_len; i <= depth; i++) {
+                                    that_stk_elem[i] = this_stk_elem[i];
+                                    that_stk_elem[i].start_set_idx = -1;
+                                }
+
+                                that_stk_elem[depth].start_set_idx = unroll_size - half_size;
+                                that_stk_elem[depth].start_idx_within_set = 0;
+                                this_stk_elem[depth].cand.cand_len[unroll_size - half_size] = -1;
+
+                                s_len[requested_id] = depth + 1;
+
+                                __threadfence();
+                                states[requested_id] = 0;
+
+                                __threadfence();
+                                atomicAdd(&unfinished, 1);
+#ifdef BALANCE_CNT
+                                atomicAdd(&steal_cnt, 1);
 #endif
+                            }
+                        }
+                        __syncwarp();
+                        // break no matter successfully dequeue or not
+                        break;
+                    }
+                }
+            }
+#endif
+
             int lane_parent_idx = -1;
             int lane_idx_within_set = -1;
             int lane_v = -1;
@@ -795,11 +967,7 @@ dfs_kernel_sym(
 
                     int next_u = *this_stk_len - 1;
                     stk_elem *new_e_ptr = &this_stk_elem[next_u];
-#ifndef STK_ELEM_CAND_ON_SHARED
-                    stk_elem_cand *new_cand_ptr = &this_stk_elem_cand[next_u];
-#else
                     stk_elem_cand *new_cand_ptr = &new_e_ptr->cand;
-#endif
 
                     if (lane_id == 0) {
                         new_e_ptr->cand.cand_len[__popc(flag_mask)] = -1;
@@ -878,8 +1046,62 @@ dfs_kernel_sym(
 
 #ifdef BALANCE_CNT
     if (lane_id == 0) {
+        warp_time[warp_id] = clock64();
+        ull duration = (warp_time[warp_id] - start_time[warp_id]) / 1e6;
+        atomicCAS(&first_finish, 0, duration);
+    }
+    __syncwarp();
+#endif
+
+#ifdef LOCAL_WORK_STEALING
+    bool leave = false;
+    if (lane_id == 0) {
+        if (this_queue->length() >= unfinished + 2) {
+            leave = true;
+        }
+        else {
+            states[warp_id_within_blk] = 1;
+            __threadfence();
+            this_queue->enqueue(warp_id_within_blk);
+        }
+        atomicSub(&unfinished, 1);
+    }
+    leave = __shfl_sync(FULL_MASK, leave, 0);
+
+    int sleep_time = 10;
+
+    if (leave) {
+        goto end;
+    }
+
+    while (unfinished > 0) {
+        bool restart_flag = false;
+        if (lane_id == 0) {
+            if (states[warp_id_within_blk] == 0) {
+                restart_flag = true;
+            }
+        }
+        restart_flag = __shfl_sync(FULL_MASK, restart_flag, 0);
+        if (restart_flag) {
+            goto restart;
+        }
+
+        sleep_time *= 2;
+        if (sleep_time > 1000) {
+            sleep_time = 1000;
+        }
+        __nanosleep(sleep_time);
+    }
+#endif
+
+end:
+
+#ifdef BALANCE_CNT
+    if (lane_id == 0) {
         if (assigned) {
-            warp_time[warp_id] = (clock64() - warp_time[warp_id]) / 1e6;
+            warp_time[warp_id] = static_cast<ull>(
+                                     static_cast<double>(warp_time[warp_id] - start_time[warp_id]) / 1e6
+                                 );
         }
         else {
             warp_time[warp_id] = 0;
@@ -996,23 +1218,26 @@ bfs_end:
     cudaCheck(cudaMalloc(&begin_offset, sizeof(int)));
     cudaCheck(cudaMemset(begin_offset, 0, sizeof(int)));
 
-    stk_elem_cand *d_stk_elem_cand = nullptr;
     int dynamic_shared_size = warpsPerBlock * (Q.vcount() - l) * sizeof(stk_elem)
                               + warpsPerBlock * l * sizeof(stk_elem_fixed);
 
-#ifndef STK_ELEM_CAND_ON_SHARED
-    cudaCheck(cudaMalloc(&d_stk_elem_cand, warpNum * (Q.vcount() - l) * sizeof(stk_elem_cand)));
-#endif
     printf("Shared memory usage: %.2f KB per thread block\n", (dynamic_shared_size + (int)sizeof(int) * warpsPerBlock) / 1024.0);
     printf("DFS kernel theoretical occupancy %.2f%%\n", calculateOccupancy((const void *)dfs_kernel, threadsPerBlock, dynamic_shared_size));
+
+    idle_queue h_Q[maxBlocks];
+    idle_queue *d_Q = nullptr;
+    cudaCheck(cudaMalloc(&d_Q, sizeof(idle_queue) * maxBlocks));
+    for (int i = 0; i < maxBlocks; i++) {
+        h_Q[i].init();
+    }
+    cudaCheck(cudaMemcpy(d_Q, h_Q, sizeof(idle_queue) * maxBlocks, cudaMemcpyHostToDevice));
 
     TIME_START();
     dfs_kernel <<< maxBlocks, threadsPerBlock, dynamic_shared_size >>> (
         Q, cg, d_sum,
         d_MM, partial_matching_cnt,
         begin_offset, l,
-        d_stk_elem_cand,
-        label_mask, backward_mask
+        label_mask, backward_mask, d_Q
     );
     cudaCheck(cudaGetLastError());
     cudaCheck(cudaDeviceSynchronize());
@@ -1031,9 +1256,6 @@ bfs_end:
     free(h_sum);
     cudaCheck(cudaFree(d_sum));
     cudaCheck(cudaFree(begin_offset));
-    if (d_stk_elem_cand) {
-        cudaCheck(cudaFree(d_stk_elem_cand));
-    }
 
 #ifdef IDLE_CNT
     ull h_sample_cnt = 0, h_idle_cnt = 0;
@@ -1183,25 +1405,29 @@ bfs_end:
     cudaCheck(cudaMalloc(&begin_offset, sizeof(int)));
     cudaCheck(cudaMemset(begin_offset, 0, sizeof(int)));
 
-    stk_elem_cand *d_stk_elem_cand = nullptr;
     int dynamic_shared_size = warpsPerBlock * (Q.vcount() - l) * sizeof(stk_elem)
                               + warpsPerBlock * l * sizeof(stk_elem_fixed);
 
-#ifndef STK_ELEM_CAND_ON_SHARED
-    cudaCheck(cudaMalloc(&d_stk_elem_cand, warpNum * (Q.vcount() - l) * sizeof(stk_elem_cand)));
-#endif
     printf("Shared memory usage: %.2f KB per thread block\n", (dynamic_shared_size + (int)sizeof(int) * warpsPerBlock) / 1024.0);
     printf("DFS kernel theoretical occupancy %.2f%%\n", calculateOccupancy((const void *)dfs_kernel, threadsPerBlock, dynamic_shared_size));
+
+    idle_queue h_Q[maxBlocks];
+    idle_queue *d_Q = nullptr;
+    cudaCheck(cudaMalloc(&d_Q, sizeof(idle_queue) * maxBlocks));
+    for (int i = 0; i < maxBlocks; i++) {
+        h_Q[i].init();
+    }
+    cudaCheck(cudaMemcpy(d_Q, h_Q, sizeof(idle_queue) * maxBlocks, cudaMemcpyHostToDevice));
 
     TIME_START();
     dfs_kernel_sym <<< maxBlocks, threadsPerBlock, dynamic_shared_size >>> (
         Q, cg, d_sum,
         d_MM, partial_matching_cnt,
         begin_offset, l,
-        d_stk_elem_cand,
         label_mask,
         backward_mask,
-        d_partial_order
+        d_partial_order,
+        d_Q
     );
     cudaCheck(cudaGetLastError());
     cudaCheck(cudaDeviceSynchronize());
@@ -1220,9 +1446,6 @@ bfs_end:
     free(h_sum);
     cudaCheck(cudaFree(d_sum));
     cudaCheck(cudaFree(begin_offset));
-    if (d_stk_elem_cand) {
-        cudaCheck(cudaFree(d_stk_elem_cand));
-    }
 
 #ifdef IDLE_CNT
     ull h_sample_cnt = 0, h_idle_cnt = 0;
