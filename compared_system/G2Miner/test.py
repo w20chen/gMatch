@@ -1,0 +1,5 @@
+import torch
+print(f"CUDA available: {torch.cuda.is_available()}")
+print(f"CUDA version: {torch.version.cuda}")
+print(f"GPU device: {torch.cuda.get_device_name()}")
+print(f"GPU compute capability: {torch.cuda.get_device_capability()}")

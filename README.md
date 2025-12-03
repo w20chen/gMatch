@@ -1,5 +1,5 @@
 # gMatch: Fine-Grained and Hardware-Efficient Subgraph Matching on GPUs
-An efficient subgraph matching algorithm optimized for NVIDIA GPUs using CUDA, featuring high GPU utilization and designed for load-balanced parallel execution.
+An efficient subgraph matching algorithm optimized for NVIDIA GPUs using CUDA, featuring *high GPU utilization*, *low GPU memory consumption*, and *load-balanced parallel execution*.
 
 ## Introduction
 This project implements a GPU-accelerated subgraph matching algorithm featuring:
@@ -13,7 +13,7 @@ This project implements a GPU-accelerated subgraph matching algorithm featuring:
 - Load balancing techniques for ensuring inter-warp workload balance via queuing and memory pool utilization
 
 ## Compile
-Our program requires CMake (version 3.30.1), Make (version 4.3), GCC (version 10.5.0), and NVCC (version 12.5). You can compile the code by executing the following commands.
+This project requires CMake (version 3.30.1), Make (version 4.3), GCC (version 10.5.0), and NVCC (version 12.5). You can compile the code by executing the following commands.
 ```bash
 bash compile.sh
 ```
@@ -21,7 +21,7 @@ After successful compilation, the binary files are created in the `bitmap/build`
 
 
 ## Graph File Format
-Our program only accepts a specific input format. An invalid format is likely to cause errors. A valid graph file follows the structure below:
+gMatch only accepts a specific input format. An invalid format is likely to cause errors. A valid graph file follows the structure below:
 
 1. **Header Line** (`t`):
     - Starts with `t`, followed by two integers representing:
@@ -40,9 +40,12 @@ Our program only accepts a specific input format. An invalid format is likely to
 
 This format defines an undirected graph where vertices are labeled and degrees are explicitly listed for each node. For a graph $g$, the first line should be `t` $|V(g)|$ $|E(g)|$, followed by $|V(g)|$ vertex lines and $|E(g)|$ edge lines. Each vertex $v\in V(g)$ has a unique vertex ID from 0 to $|V(g)|-1$.
 
-Our program also supports a **CSR (Compressed Sparse Row) binary format** for data graphs, structured as follows: The file begins with two **32-bit integers** representing the **vertex count** $|V(G)|$ and **edge count** $|E(G)|$. Next comes the **offset array**, consisting of $|V(G)| + 1$ **64-bit unsigned integers (unsigned long long)**, where the $i$-th entry points to the start of vertex $i$'s edges in the edge array (0-based), and the last entry equals $2 \times |E(G)|$. Following this is the **vertex label array**, storing $|V(G)|$ **32-bit integers**, with the $i$-th value representing the label of vertex $i$. Finally, the **edge data** consists of $2 \times |E(G)|$ **32-bit integers**, organized as consecutive destination vertices for each edge, with all edges sorted by their source vertex as defined by the offset array.
+gMatch also supports a **CSR (Compressed Sparse Row) binary format** for large data graphs, structured as follows: The file begins with two **32-bit integers** representing the **vertex count** $|V(G)|$ and **edge count** $|E(G)|$. Next comes the **offset array**, consisting of $|V(G)| + 1$ **64-bit unsigned integers (unsigned long long)**, where the $i$-th entry points to the start of vertex $i$'s edges in the edge array (0-based), and the last entry equals $2 \times |E(G)|$. Following this is the **vertex label array**, storing $|V(G)|$ **32-bit integers**, with the $i$-th value representing the label of vertex $i$. Finally, the **edge data** consists of $2 \times |E(G)|$ **32-bit integers**, organized as consecutive destination vertices for each edge, with all edges sorted by their source vertex as defined by the offset array.
 
 **To specify the input format, use the command-line parameter `-b` for CSR binary format and `-d` for text format.**
+
+## Datasets
+TBD.
 
 ## Test
 The correctness of the algorithm can be verified using the following commands:
@@ -59,7 +62,7 @@ After successful compilation, three binary files are created in the `bitmap/buil
 
 ### 1. Run with Bitmap-Based Candidate Graph
 
-You can execute the program `bitmap/build/SubgraphMatching` using the following command.
+You can execute `bitmap/build/SubgraphMatching` using the following command.
 
 ```bash
 ./bitmap/build/SubgraphMatching -d <data_graph_path> -q <query_graph_path>
@@ -79,7 +82,7 @@ This runs all queries in the directory `dataset/dblp/label_16/query_graph/12` on
 
 ### 2. Run with Hash Table-Based Candidate Graph
 
-`hash_table/build/SubgraphMatching` provides another version of our program, using a hash table-based data structure for candidate set retrieval. `test_hash_table.py` works in the same way as `test_bitmap.py`. Hash table-based candidate graph is generally slower than bitmap-based but is able to maintain larger candidate sets.
+`hash_table/build/SubgraphMatching` provides another version of gMatch, using a hash table-based data structure for candidate set retrieval. `test_hash_table.py` works in the same way as `test_bitmap.py`. Hash table-based candidate graph is generally slower than bitmap-based but is able to maintain larger candidate sets.
 
 ### 3. Run with Neighborhood Intersection
 
