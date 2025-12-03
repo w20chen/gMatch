@@ -23,14 +23,17 @@ public:
     int query_vertex_cnt;
     int data_vertex_cnt;
 
-    unsigned long long *nbr_offset;
-    int *nbr_array;
+    ull *__restrict__ g_nbr_offset;
+    int *__restrict__ g_nbr_array;
 
     candidate_graph_GPU(const candidate_graph &cg);
 
     __device__ __forceinline__ int *get_nbr(int v, int &len) const {
-        len = nbr_offset[v + 1] - nbr_offset[v];
-        return nbr_array + nbr_offset[v];
+        ull start = __ldg(g_nbr_offset + v);
+        ull end = __ldg(g_nbr_offset + v + 1);
+        len = static_cast<int>(end - start);
+
+        return g_nbr_array + start;
     }
 };
 

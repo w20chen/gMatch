@@ -1178,13 +1178,14 @@ join_bfs_dfs(
         cudaCheck(cudaDeviceSynchronize());
 
         cudaCheck(cudaMemcpy(&h_MM, d_MM, sizeof(MemManager), cudaMemcpyDeviceToHost));
+        float allocated_block_memory = h_MM.mempool_to_write()->allocated_block_memory();
         h_MM.swap_mem_pool();
         get_partial_init(&h_MM);
         h_MM.init_prev_head();
         partial_matching_cnt = h_MM.get_partial_cnt();
         cudaCheck(cudaMemcpy(d_MM, &h_MM, sizeof(MemManager), cudaMemcpyHostToDevice));
-        printf("BFS extended to level %d. Partial matching count: %d. Number of warps: %d\n",
-               l + 1, partial_matching_cnt, warpNum);
+        printf("BFS extended to level %d. #Partial matchings: %d. Expected initial number: %g. Memory consumption: %.2f KB. Allocated block: %.2f KB.\n",
+            l + 1, partial_matching_cnt, (double)expected_init_num, (l + 1) * sizeof(int) * partial_matching_cnt / 1024., allocated_block_memory);
 
         if (partial_matching_cnt == 0) {
             break;
@@ -1221,7 +1222,18 @@ bfs_end:
     int dynamic_shared_size = warpsPerBlock * (Q.vcount() - l) * sizeof(stk_elem)
                               + warpsPerBlock * l * sizeof(stk_elem_fixed);
 
+    int thread_block_num = 0;
+    int current_device;
+    cudaGetDevice(&current_device);
+    cudaDeviceProp prop;
+    cudaGetDeviceProperties(&prop, current_device);
+    int num_SMs = prop.multiProcessorCount;
+    cudaOccupancyMaxActiveBlocksPerMultiprocessor(&thread_block_num, dfs_kernel, threadsPerBlock, dynamic_shared_size);
+    thread_block_num = thread_block_num * num_SMs;
+    printf("#thread blocks per SM: %d, #SMs: %d, #threads per block: %d\n", thread_block_num / num_SMs, num_SMs, threadsPerBlock);
+
     printf("Shared memory usage: %.2f KB per thread block\n", (dynamic_shared_size + (int)sizeof(int) * warpsPerBlock) / 1024.0);
+    printf("Total shared memory usage: %.2f KB\n", (dynamic_shared_size + (int)sizeof(int) * warpsPerBlock) / 1024.0 * thread_block_num);
     printf("DFS kernel theoretical occupancy %.2f%%\n", calculateOccupancy((const void *)dfs_kernel, threadsPerBlock, dynamic_shared_size));
 
     idle_queue h_Q[maxBlocks];
@@ -1233,7 +1245,7 @@ bfs_end:
     cudaCheck(cudaMemcpy(d_Q, h_Q, sizeof(idle_queue) * maxBlocks, cudaMemcpyHostToDevice));
 
     TIME_START();
-    dfs_kernel <<< maxBlocks, threadsPerBlock, dynamic_shared_size >>> (
+    dfs_kernel <<< thread_block_num, threadsPerBlock, dynamic_shared_size >>> (
         Q, cg, d_sum,
         d_MM, partial_matching_cnt,
         begin_offset, l,
@@ -1365,13 +1377,14 @@ join_bfs_dfs_sym(
         cudaCheck(cudaDeviceSynchronize());
 
         cudaCheck(cudaMemcpy(&h_MM, d_MM, sizeof(MemManager), cudaMemcpyDeviceToHost));
+        float allocated_block_memory = h_MM.mempool_to_write()->allocated_block_memory();
         h_MM.swap_mem_pool();
         get_partial_init(&h_MM);
         h_MM.init_prev_head();
         partial_matching_cnt = h_MM.get_partial_cnt();
         cudaCheck(cudaMemcpy(d_MM, &h_MM, sizeof(MemManager), cudaMemcpyHostToDevice));
-        printf("BFS extended to level %d. Partial matching count: %d. Number of warps: %d\n",
-               l + 1, partial_matching_cnt, warpNum);
+        printf("BFS extended to level %d. #Partial matchings: %d. Expected initial number: %g. Memory consumption: %.2f KB. Allocated block: %.2f KB.\n",
+            l + 1, partial_matching_cnt, (double)expected_init_num, (l + 1) * sizeof(int) * partial_matching_cnt / 1024., allocated_block_memory);
 
         if (partial_matching_cnt == 0) {
             break;
@@ -1408,8 +1421,19 @@ bfs_end:
     int dynamic_shared_size = warpsPerBlock * (Q.vcount() - l) * sizeof(stk_elem)
                               + warpsPerBlock * l * sizeof(stk_elem_fixed);
 
+    int thread_block_num = 0;
+    int current_device;
+    cudaGetDevice(&current_device);
+    cudaDeviceProp prop;
+    cudaGetDeviceProperties(&prop, current_device);
+    int num_SMs = prop.multiProcessorCount;
+    cudaOccupancyMaxActiveBlocksPerMultiprocessor(&thread_block_num, dfs_kernel_sym, threadsPerBlock, dynamic_shared_size);
+    thread_block_num = thread_block_num * num_SMs;
+    printf("#thread blocks per SM: %d, #SMs: %d, #threads per block: %d\n", thread_block_num / num_SMs, num_SMs, threadsPerBlock);
+
     printf("Shared memory usage: %.2f KB per thread block\n", (dynamic_shared_size + (int)sizeof(int) * warpsPerBlock) / 1024.0);
-    printf("DFS kernel theoretical occupancy %.2f%%\n", calculateOccupancy((const void *)dfs_kernel, threadsPerBlock, dynamic_shared_size));
+    printf("Total shared memory usage: %.2f KB\n", (dynamic_shared_size + (int)sizeof(int) * warpsPerBlock) / 1024.0 * thread_block_num);
+    printf("DFS kernel theoretical occupancy %.2f%%\n", calculateOccupancy((const void *)dfs_kernel_sym, threadsPerBlock, dynamic_shared_size));
 
     idle_queue h_Q[maxBlocks];
     idle_queue *d_Q = nullptr;
@@ -1420,7 +1444,7 @@ bfs_end:
     cudaCheck(cudaMemcpy(d_Q, h_Q, sizeof(idle_queue) * maxBlocks, cudaMemcpyHostToDevice));
 
     TIME_START();
-    dfs_kernel_sym <<< maxBlocks, threadsPerBlock, dynamic_shared_size >>> (
+    dfs_kernel_sym <<< thread_block_num, threadsPerBlock, dynamic_shared_size >>> (
         Q, cg, d_sum,
         d_MM, partial_matching_cnt,
         begin_offset, l,

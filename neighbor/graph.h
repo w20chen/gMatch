@@ -17,10 +17,11 @@ class Graph {
 public:
     ull *h_offset;
     int *h_array;
+    bool is_dag;
 
 private:
     int vcount_;
-    int ecount_;
+    unsigned int ecount_;
 
     std::vector<int> deg_;
 
@@ -54,19 +55,29 @@ public:
         return vcount_;
     }
 
-    int
+    unsigned int
     ecount() const {
         return ecount_;
     }
 
     bool
     is_clique() const {
-        return ecount_ * 2 == vcount_ *  (vcount_ - 1);
+        return (ull)ecount_ * 2 == (ull)vcount_ *  ((ull)vcount_ - 1);
     }
 
     int
     degree(int u) const {
         return deg_[u];
+    }
+
+    int
+    min_degree() const {
+        return *min_element(deg_.begin(), deg_.end());
+    }
+
+    int
+    max_degree() const {
+        return *max_element(deg_.begin(), deg_.end());
     }
 
     Graph(const std::string &file_path, bool is_csr = false);
@@ -75,6 +86,21 @@ public:
 
     void
     parse_csr(const char* filename);
+
+    void
+    parse_g2miner_format(const std::string& prefix);
+
+    void
+    remove_degree_one_layer(int x = 2);
+
+    void 
+    write_csr(const char* filename);
+
+    void
+    reorder_by_degree(bool);
+
+    void
+    convert_to_degree_dag();
 
     void
     print_meta() const {
@@ -140,13 +166,16 @@ private:
 public:
     int
     restriction_generation(std::vector<uint32_t> &partial_order) const;
+
+    static void
+    save_largest_component(const char* input_filename, const char* output_filename);
 };
 
 
 class Graph_GPU {
 public:
     int vcount_;
-    int ecount_;
+    unsigned int ecount_;
 
 #ifndef UNLABELED
     int *d_label_;
@@ -162,7 +191,7 @@ public:
         return vcount_;
     }
 
-    __device__ __host__ __forceinline__ int
+    __device__ __host__ __forceinline__ unsigned int
     ecount() const {
         return ecount_;
     }
@@ -199,5 +228,152 @@ public:
     }
 };
 
+#include <vector>
+#include <queue>
+#include <atomic>
+#include <thread>
+#include <algorithm>
+#include <fstream>
+
+class ConnectedComponentFinder {
+private:
+    Graph* graph_;
+    std::vector<int> parent_;
+    std::vector<int> component_size_;
+    std::vector<bool> visited_;
+    std::atomic<int> current_vertex_;
+
+public:
+    ConnectedComponentFinder(Graph* graph) : graph_(graph), current_vertex_(0) {
+        int vcount = graph_->vcount();
+        parent_.resize(vcount);
+        component_size_.resize(vcount, 0);
+        visited_.resize(vcount, false);
+
+        for (int i = 0; i < vcount; i++) {
+            parent_[i] = i;
+        }
+    }
+
+    // 改进的find函数，确保完全路径压缩
+    int find(int x) {
+        int root = x;
+        // 找到根节点
+        while (parent_[root] != root) {
+            root = parent_[root];
+        }
+
+        // 路径压缩
+        while (x != root) {
+            int next = parent_[x];
+            parent_[x] = root;
+            x = next;
+        }
+        return root;
+    }
+
+    // 改进的union操作，确保正确的合并
+    void union_sets(int x, int y) {
+        int root_x = find(x);
+        int root_y = find(y);
+        if (root_x != root_y) {
+            // 总是合并到较小的根，确保一致性
+            if (root_x < root_y) {
+                parent_[root_y] = root_x;
+            } else {
+                parent_[root_x] = root_y;
+            }
+        }
+    }
+
+    // 修正的BFS函数
+    void parallel_bfs(int start_vertex) {
+        if (visited_[start_vertex]) return;
+
+        std::queue<int> q;
+        q.push(start_vertex);
+        visited_[start_vertex] = true;
+
+        while (!q.empty()) {
+            int u = q.front();
+            q.pop();
+
+            // 遍历邻居
+            ull start = graph_->h_offset[u];
+            ull end = graph_->h_offset[u + 1];
+
+            for (ull i = start; i < end; i++) {
+                int v = graph_->h_array[i];
+
+                // 合并当前顶点和邻居
+                union_sets(start_vertex, v);
+
+                if (!visited_[v]) {
+                    visited_[v] = true;
+                    q.push(v);
+                }
+            }
+        }
+    }
+
+    // 修正的组件查找函数
+    void find_components(int num_threads = std::thread::hardware_concurrency()) {
+        int vcount = graph_->vcount();
+
+        // 重置原子变量
+        current_vertex_.store(0);
+
+        std::vector<std::thread> threads;
+        for (int t = 0; t < num_threads; t++) {
+            threads.emplace_back([this, vcount]() {
+                while (true) {
+                    int start = current_vertex_.fetch_add(1);
+                    if (start >= vcount) break;
+
+                    // 直接调用BFS，不进行复杂的原子检查
+                    parallel_bfs(start);
+                }
+            });
+        }
+
+        for (auto& t : threads) {
+            t.join();
+        }
+
+        // 重新计算组件大小
+        std::fill(component_size_.begin(), component_size_.end(), 0);
+        for (int i = 0; i < vcount; i++) {
+            int root = find(i);
+            component_size_[root]++;
+        }
+    }
+
+    std::vector<int> get_largest_component() {
+        int max_size = 0;
+        int max_root = -1;
+        int vcount = graph_->vcount();
+
+        for (int i = 0; i < vcount; i++) {
+            if (component_size_[i] > max_size) {
+                max_size = component_size_[i];
+                max_root = i;
+            }
+        }
+
+        if (max_root == -1) {
+            return std::vector<int>();
+        }
+
+        std::vector<int> largest_component;
+        for (int i = 0; i < vcount; i++) {
+            if (find(i) == max_root) {
+                largest_component.push_back(i);
+            }
+        }
+
+        printf("Found largest component with %zu vertices\n", largest_component.size());
+        return largest_component;
+    }
+};
 
 #endif

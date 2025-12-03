@@ -23,6 +23,16 @@ Graph::generate_bfs_order(std::vector<int> &bfs_order, int start) const {
 
 void
 Graph::generate_matching_order(std::vector<int> &matching_order) const {
+    if (vcount_ == 4 && ecount_ == 4 && *max_element(deg_.begin(), deg_.end()) == 2) {
+        // Rectangle (4-cycle)
+        matching_order.resize(4);
+        matching_order[0] = 0;
+        matching_order[1] = 1;
+        matching_order[2] = 3;
+        matching_order[3] = 2;
+        return;
+    }
+
     int n = vcount_;
     std::vector<bool> visited(n, false);
 
@@ -169,8 +179,15 @@ Graph::generate_matching_order(std::vector<int> &matching_order) const {
 
 
 Graph::Graph(const std::string &file_path, bool is_csr) {
+    is_dag = false;
+
     if (is_csr) {
-        parse_csr(file_path.c_str());
+        if (file_path.find(".bin") != std::string::npos) {
+            parse_csr(file_path.c_str());
+        }
+        else {
+            parse_g2miner_format(file_path);
+        }
         return;
     }
 
@@ -184,7 +201,7 @@ Graph::Graph(const std::string &file_path, bool is_csr) {
     }
 
     char type = 0;
-    fscanf(infile, " %c %d %d", &type, &vcount_, &ecount_);
+    fscanf(infile, " %c %d %u", &type, &vcount_, &ecount_);
 
     adj_.resize(vcount_);
     deg_.resize(vcount_);
@@ -214,7 +231,7 @@ Graph::Graph(const std::string &file_path, bool is_csr) {
         }
     }
 
-    int edge_count = 0;
+    unsigned int edge_count = 0;
 
     for (int v = 0; v < vcount_; v++) {
         adj_[v].reserve(deg_[v]);
@@ -268,6 +285,8 @@ Graph::Graph(const std::string &file_path, bool is_csr) {
 
 
 Graph::Graph(const std::string &file_path, std::vector<int> &matching_order) {
+    is_dag = false;
+
     h_offset = nullptr;
     h_array = nullptr;
 
@@ -359,6 +378,14 @@ Graph::Graph(const std::string &file_path, std::vector<int> &matching_order) {
     generate_backward_neighborhood();
 
     std::cout << "Query vertices are renamed according to the matching order." << std::endl;
+
+    for (int v = 0; v < vcount_; v++) {
+        printf("N(%d): ", v);
+        for (int w : adj_[v]) {
+            printf("%d ", w);
+        }
+        printf("\n");
+    }
 }
 
 
@@ -370,11 +397,13 @@ Graph::parse_csr(const char* filename) {
         exit(EXIT_FAILURE);
     }
 
-    if (fread(&vcount_, sizeof(int), 1, file) != 1 || fread(&ecount_, sizeof(int), 1, file) != 1) {
+    if (fread(&vcount_, sizeof(int), 1, file) != 1 || fread(&ecount_, sizeof(unsigned int), 1, file) != 1) {
         fclose(file);
         fprintf(stderr, "Error reading vertex/edge counts\n");
         exit(EXIT_FAILURE);
     }
+
+    printf("|V|=%g |E|=%g\n", (double)vcount_, (double)ecount_);
 
     h_offset = new ull[vcount_ + 1];
     if (fread(h_offset, sizeof(ull), vcount_ + 1, file) != static_cast<size_t>(vcount_ + 1)) {
@@ -393,7 +422,7 @@ Graph::parse_csr(const char* filename) {
     }
 
     h_array = new int[2 * (ull)ecount_];
-    if (fread(h_array, sizeof(int), 2 * (ull)ecount_, file) != 2 * static_cast<size_t>(ecount_)) {
+    if (fread(h_array, sizeof(int), 2 * (ull)ecount_, file) != 2 * (ull)ecount_) {
         fclose(file);
         delete[] h_offset;
         delete[] h_array;
@@ -406,13 +435,197 @@ Graph::parse_csr(const char* filename) {
         deg_[i] = h_offset[i + 1] - h_offset[i];
     }
 
-    printf("Data graph loaded from CSR format file %s\n|V|=%d |E|=%d\n", filename, vcount_, ecount_);
+    printf("Data graph loaded from CSR format file %s\n|V|=%d |E|=%u\n", filename, vcount_, ecount_);
     std::cout << "Max Degree=" << *max_element(deg_.begin(), deg_.end()) << std::endl;
+    std::cout << "Min Degree=" << *min_element(deg_.begin(), deg_.end()) << std::endl;
+    std::cout << "Avg Degree=" << (static_cast<double>(ecount_) * 2 / vcount_) << std::endl;
     std::cout << "#labels=" << *max_element(vertex_label_.begin(), vertex_label_.end()) + 1 << std::endl;
 
     fclose(file);
 }
 
+void Graph::parse_g2miner_format(const std::string& prefix) {
+    printf("Loading graph from g2miner format: %s\n", prefix.c_str());
+
+    std::ifstream f_meta(prefix + ".meta.txt");
+    if (!f_meta) {
+        fprintf(stderr, "Error opening meta file: %s\n", (prefix + ".meta.txt").c_str());
+        exit(EXIT_FAILURE);
+    }
+
+    ull n_vertices, n_edges;
+    f_meta >> n_vertices >> n_edges;
+    f_meta.close();
+
+    vcount_ = (int)n_vertices;
+    ecount_ = (unsigned int)(n_edges / 2);
+
+    printf("|V|=%d |E|=%u\n", vcount_, ecount_);
+
+    std::ifstream f_vertex(prefix + ".vertex.bin", std::ios::binary);
+    if (!f_vertex) {
+        fprintf(stderr, "Error opening vertex file: %s\n", (prefix + ".vertex.bin").c_str());
+        exit(EXIT_FAILURE);
+    }
+
+    f_vertex.seekg(0, std::ios::end);
+    size_t vertex_file_size = f_vertex.tellg();
+    f_vertex.seekg(0, std::ios::beg);
+    printf("Vertex file size: %zu bytes\n", vertex_file_size);
+
+    h_offset = new ull[vcount_ + 1];
+    f_vertex.read(reinterpret_cast<char*>(h_offset), sizeof(ull) * (vcount_ + 1));
+    f_vertex.close();
+
+    std::ifstream f_edge(prefix + ".edge.bin", std::ios::binary);
+    if (!f_edge) {
+        fprintf(stderr, "Error opening edge file: %s\n", (prefix + ".edge.bin").c_str());
+        delete[] h_offset;
+        exit(EXIT_FAILURE);
+    }
+
+
+    f_edge.seekg(0, std::ios::end);
+    size_t edge_file_size = f_edge.tellg();
+    f_edge.seekg(0, std::ios::beg);
+    printf("Edge file size: %zu bytes\n", edge_file_size);
+
+    h_array = new int[2 * (ull)ecount_];
+
+    f_edge.read(reinterpret_cast<char*>(h_array), sizeof(int) * 2 * (ull)ecount_);
+    f_edge.close();
+
+    vertex_label_.resize(vcount_, 0);
+
+    deg_.resize(vcount_, 0);
+    for (int i = 0; i < vcount_; i++) {
+        deg_[i] = h_offset[i + 1] - h_offset[i];
+    }
+
+    printf("Data graph loaded from original format\n");
+    std::cout << "Max Degree=" << *max_element(deg_.begin(), deg_.end()) << std::endl;
+    std::cout << "Min Degree=" << *min_element(deg_.begin(), deg_.end()) << std::endl;
+    std::cout << "Avg Degree=" << (static_cast<double>(ecount_) * 2 / vcount_) << std::endl;
+    std::cout << "#labels=" << *max_element(vertex_label_.begin(), vertex_label_.end()) + 1 << std::endl;
+}
+
+void Graph::remove_degree_one_layer(int x) {
+    printf("Removing one layer of degree < %d vertices...\n", x);
+
+    std::vector<bool> keep(vcount_, false);
+    for (int u = 0; u < vcount_; u++) {
+        if (deg_[u] >= x) {
+            keep[u] = true;
+        }
+    }
+
+    std::vector<int> new_deg(vcount_, 0);
+    ull new_edge_count = 0;
+
+    for (int u = 0; u < vcount_; u++) {
+        if (!keep[u]) continue;
+
+        ull start = h_offset[u];
+        ull end = h_offset[u + 1];
+
+        for (ull j = start; j < end; j++) {
+            int v = h_array[j];
+            if (keep[v]) {
+                new_deg[u]++;
+                new_edge_count++;
+            }
+        }
+    }
+
+    new_edge_count /= 2;
+
+    ull* new_h_offset = new ull[vcount_ + 1];
+    int* new_h_array = new int[2 * (ull)new_edge_count];
+
+    new_h_offset[0] = 0;
+    for (int i = 0; i < vcount_; i++) {
+        new_h_offset[i + 1] = new_h_offset[i] + new_deg[i];
+    }
+
+    ull edge_index = 0;
+    for (int u = 0; u < vcount_; u++) {
+        if (!keep[u]) continue;
+
+        ull start = h_offset[u];
+        ull end = h_offset[u + 1];
+
+        for (ull j = start; j < end; j++) {
+            int v = h_array[j];
+            if (keep[v]) {
+                new_h_array[edge_index++] = v;
+            }
+        }
+    }
+
+    ull old_ecount = ecount_;
+    ecount_ = (unsigned int)new_edge_count;
+
+    for (int i = 0; i < vcount_; i++) {
+        deg_[i] = new_deg[i];
+    }
+
+    delete[] h_offset;
+    delete[] h_array;
+    h_offset = new_h_offset;
+    h_array = new_h_array;
+
+    printf("Removed %llu edges connected to degree < %d vertices.\n", old_ecount - ecount_, x);
+    printf("Graph after removing degree < %d vertices:\n", x);
+    printf("|V|=%d |E|=%u\n", vcount_, ecount_);
+
+    int max_deg = 0, min_deg = INT_MAX;
+    ull total_deg = 0;
+    for (int i = 0; i < vcount_; i++) {
+        max_deg = std::max(max_deg, deg_[i]);
+        min_deg = std::min(min_deg, deg_[i]);
+        total_deg += deg_[i];
+    }
+
+    printf("Max Degree=%d\n", max_deg);
+    printf("Min Degree=%d\n", min_deg);
+    printf("Avg Degree=%.2f\n", static_cast<double>(total_deg) / vcount_);
+}
+
+void 
+Graph::write_csr(const char* filename) {
+    FILE* file = fopen(filename, "wb");
+    if (!file) {
+        fprintf(stderr, "Error opening file for writing: %s\n", filename);
+        exit(EXIT_FAILURE);
+    }
+
+    if (fwrite(&vcount_, sizeof(int), 1, file) != 1 || fwrite(&ecount_, sizeof(unsigned int), 1, file) != 1) {
+        fclose(file);
+        fprintf(stderr, "Error writing vertex/edge counts\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (fwrite(h_offset, sizeof(ull), vcount_ + 1, file) != static_cast<size_t>(vcount_ + 1)) {
+        fclose(file);
+        fprintf(stderr, "Error writing offsets array\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (fwrite(vertex_label_.data(), sizeof(int), vcount_, file) != static_cast<size_t>(vcount_)) {
+        fclose(file);
+        fprintf(stderr, "Error writing vertex labels\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (fwrite(h_array, sizeof(int), 2 * (ull)ecount_, file) != 2 * (ull)ecount_) {
+        fclose(file);
+        fprintf(stderr, "Error writing edges array\n");
+        exit(EXIT_FAILURE);
+    }
+
+    fclose(file);
+    printf("Data graph saved to CSR format file %s\n|V|=%d |E|=%u\n", filename, vcount_, ecount_);
+}
 
 int
 Graph::find_automorphisms(std::vector<std::vector<uint32_t>> &embeddings) const {
@@ -579,4 +792,253 @@ Graph::restriction_generation(std::vector<uint32_t> &partial_order) const {
     }
 
     return alpha;
+}
+
+
+void Graph::reorder_by_degree(bool ascending) {
+    if (ascending) {
+        printf("Reordering graph by degree in ascending order.\n");
+    }
+    else {
+        printf("Reordering graph by degree in descending order.\n");
+    }
+
+    std::vector<std::pair<int, int>> vertex_degree_pairs(vcount_);
+    for (int i = 0; i < vcount_; i++) {
+        vertex_degree_pairs[i] = std::make_pair(i, deg_[i]);
+    }
+    
+    if (ascending) {
+        // Sort vertices by degree in ascending order.
+        std::sort(vertex_degree_pairs.begin(), vertex_degree_pairs.end(),
+            [](const std::pair<int, int>& a, const std::pair<int, int>& b) {
+                return a.second < b.second;
+            });
+    }
+    else {
+        std::sort(vertex_degree_pairs.begin(), vertex_degree_pairs.end(),
+            [](const std::pair<int, int>& a, const std::pair<int, int>& b) {
+                return a.second > b.second;
+            });
+    }
+    
+    std::vector<int> old_to_new(vcount_);
+    for (int new_id = 0; new_id < vcount_; new_id++) {
+        int old_id = vertex_degree_pairs[new_id].first;
+        old_to_new[old_id] = new_id;
+    }
+    
+    std::vector<int> new_vertex_label(vcount_);
+    for (int i = 0; i < vcount_; i++) {
+        new_vertex_label[old_to_new[i]] = vertex_label_[i];
+    }
+    vertex_label_ = std::move(new_vertex_label);
+    
+    std::vector<int> new_deg(vcount_);
+    for (int i = 0; i < vcount_; i++) {
+        new_deg[old_to_new[i]] = deg_[i];
+    }
+    deg_ = std::move(new_deg);
+    
+    std::vector<std::vector<int>> new_adj_list(vcount_);
+    
+    for (int old_u = 0; old_u < vcount_; old_u++) {
+        int new_u = old_to_new[old_u];
+        ull start = h_offset[old_u];
+        ull end = h_offset[old_u + 1];
+        
+        for (ull j = start; j < end; j++) {
+            int old_v = h_array[j];
+            int new_v = old_to_new[old_v];
+            new_adj_list[new_u].push_back(new_v);
+        }
+    }
+    
+    for (int i = 0; i < vcount_; i++) {
+        std::sort(new_adj_list[i].begin(), new_adj_list[i].end());
+    }
+    
+    delete[] h_offset;
+    delete[] h_array;
+    
+    h_offset = new ull[vcount_ + 1];
+    h_offset[0] = 0;
+    for (int i = 0; i < vcount_; i++) {
+        h_offset[i + 1] = h_offset[i] + new_adj_list[i].size();
+    }
+    
+    h_array = new int[2 * (ull)ecount_];
+    ull edge_index = 0;
+    for (int i = 0; i < vcount_; i++) {
+        for (int neighbor : new_adj_list[i]) {
+            h_array[edge_index++] = neighbor;
+        }
+    }
+    
+    if (edge_index != 2 * (ull)ecount_) {
+        fprintf(stderr, "Error: Edge count mismatch after reordering\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    printf("Graph has been reordered by degree.\n");
+}
+
+
+void Graph::convert_to_degree_dag() {
+    if (is_dag) {
+        printf("Graph is already a DAG. Skipping conversion.\n");
+        return;
+    }
+    is_dag = true;
+    std::vector<std::vector<int>> new_adj_list(vcount_);
+
+    for (int u = 0; u < vcount_; u++) {
+        ull start = h_offset[u];
+        ull end = h_offset[u + 1];
+
+        for (ull j = start; j < end; j++) {
+            int v = h_array[j];
+            if (u >= v) continue;
+
+            if (deg_[u] < deg_[v]) {
+                new_adj_list[u].push_back(v);
+            }
+            else if (deg_[u] > deg_[v]) {
+                new_adj_list[v].push_back(u);
+            }
+            else {
+                if (u < v) {
+                    new_adj_list[u].push_back(v);
+                }
+                else {
+                    new_adj_list[v].push_back(u);
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < vcount_; i++) {
+        std::sort(new_adj_list[i].begin(), new_adj_list[i].end());
+    }
+
+    delete[] h_offset;
+    delete[] h_array;
+
+    h_offset = new ull[vcount_ + 1];
+    h_offset[0] = 0;
+    for (int i = 0; i < vcount_; i++) {
+        h_offset[i + 1] = h_offset[i] + new_adj_list[i].size();
+    }
+
+    ull dag_edge_count = h_offset[vcount_];
+    h_array = new int[dag_edge_count];
+    ull edge_index = 0;
+    for (int i = 0; i < vcount_; i++) {
+        for (int neighbor : new_adj_list[i]) {
+            h_array[edge_index++] = neighbor;
+        }
+    }
+
+    // We keep the original degree as this will ensure correct candidate generation
+    
+    ecount_ = dag_edge_count;
+    printf("Converted to DAG: |V|=%d |E|=%u\n", vcount_, ecount_);
+}
+
+
+void
+Graph::save_largest_component(const char* input_filename, const char* output_filename) {
+    std::string string_input_filename = input_filename;
+    Graph original_graph(string_input_filename, true);
+
+    ConnectedComponentFinder finder(&original_graph);
+    finder.find_components();
+    std::vector<int> largest_component = finder.get_largest_component();
+
+    printf("Largest component size: %zu vertices\n", largest_component.size());
+
+    std::vector<int> vertex_map(original_graph.vcount_, -1);
+    for (size_t i = 0; i < largest_component.size(); i++) {
+        vertex_map[largest_component[i]] = i;
+    }
+
+    ull new_ecount = 0;
+    for (int old_vertex : largest_component) {
+        ull start = original_graph.h_offset[old_vertex];
+        ull end = original_graph.h_offset[old_vertex + 1];
+
+        for (ull j = start; j < end; j++) {
+            int neighbor = original_graph.h_array[j];
+            if (vertex_map[neighbor] != -1) {
+                new_ecount++;
+            }
+        }
+    }
+
+    new_ecount /= 2;
+
+    int new_vcount = largest_component.size();
+    ull* new_offset = new ull[new_vcount + 1];
+    int* new_array = new int[2 * new_ecount];
+
+    new_offset[0] = 0;
+    for (int i = 0; i < new_vcount; i++) {
+        int old_vertex = largest_component[i];
+        ull start = original_graph.h_offset[old_vertex];
+        ull end = original_graph.h_offset[old_vertex + 1];
+
+        int edge_count = 0;
+        for (ull j = start; j < end; j++) {
+            int neighbor = original_graph.h_array[j];
+            if (vertex_map[neighbor] != -1) {
+                edge_count++;
+            }
+        }
+        new_offset[i + 1] = new_offset[i] + edge_count;
+    }
+
+    std::vector<int> current_pos(new_vcount, 0);
+    for (int i = 0; i < new_vcount; i++) {
+        int old_vertex = largest_component[i];
+        ull start = original_graph.h_offset[old_vertex];
+        ull end = original_graph.h_offset[old_vertex + 1];
+
+        for (ull j = start; j < end; j++) {
+            int old_neighbor = original_graph.h_array[j];
+            if (vertex_map[old_neighbor] != -1) {
+                int new_neighbor = vertex_map[old_neighbor];
+                ull pos = new_offset[i] + current_pos[i];
+                new_array[pos] = new_neighbor;
+                current_pos[i]++;
+            }
+        }
+    }
+
+    std::vector<int> new_vertex_label(new_vcount);
+    for (int i = 0; i < new_vcount; i++) {
+        new_vertex_label[i] = original_graph.vertex_label_[largest_component[i]];
+    }
+
+    FILE* file = fopen(output_filename, "wb");
+    if (!file) {
+        fprintf(stderr, "Error opening output file: %s\n", output_filename);
+        exit(EXIT_FAILURE);
+    }
+
+    fwrite(&new_vcount, sizeof(int), 1, file);
+    fwrite(&new_ecount, sizeof(unsigned int), 1, file);
+
+    fwrite(new_offset, sizeof(ull), new_vcount + 1, file);
+
+    fwrite(new_vertex_label.data(), sizeof(int), new_vcount, file);
+
+    fwrite(new_array, sizeof(int), 2 * new_ecount, file);
+
+    fclose(file);
+
+    delete[] new_offset;
+    delete[] new_array;
+
+    printf("Largest component saved to %s\n", output_filename);
+    printf("New graph: |V|=%d |E|=%llu\n", new_vcount, new_ecount);
 }

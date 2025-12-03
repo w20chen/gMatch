@@ -20,7 +20,7 @@ set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -O3")
 add_library(graph_objects SHARED graph.cu graph.h)
 target_include_directories(graph_objects PUBLIC ${CUDA_INCLUDE_DIRS})
 
-add_library(join_objects SHARED candidate.cu candidate.h join_bfs.cu join_bfs_dfs.cu join_no_filtering.cu join.h)
+add_library(join_objects SHARED candidate.cu candidate.h join_bfs.cu join_bfs_dfs.cu join_no_filtering.cu join_induced.cu join.h)
 target_include_directories(join_objects PUBLIC ${CUDA_INCLUDE_DIRS})
 
 set_target_properties(graph_objects join_objects PROPERTIES

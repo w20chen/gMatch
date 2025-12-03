@@ -56,6 +56,10 @@ public:
         head = nullptr;
     }
 
+    __host__ float allocated_block_memory() {
+        return (nextAddr - head) * sizeof(int) / 1024.;
+    }
+
     void
     print_meta() {
         printf("+-----------------------------------------+\n");

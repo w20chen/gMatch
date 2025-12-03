@@ -106,4 +106,25 @@ join_no_filtering(
     std::vector<uint32_t> &partial_order
 );
 
+ull
+join_induced(
+    Graph &q,
+    Graph &g,
+    Graph_GPU &Q,
+    Graph_GPU &G,
+    candidate_graph &_cg,
+    candidate_graph_GPU &cg,
+    std::vector<uint32_t> &partial_order
+);
+
+ull
+join_induced_orientation(
+    Graph &q,
+    Graph &g,
+    Graph_GPU &Q,
+    Graph_GPU &G,
+    candidate_graph &_cg,
+    candidate_graph_GPU &cg
+);
+
 #endif

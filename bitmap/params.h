@@ -27,6 +27,6 @@
 #define warpNum (maxBlocks * warpsPerBlock)
 
 #define memPoolBlockSize (32LL * QVMAX * sizeof(int))                 // # of bytes within a block
-#define memPoolBlockNum (1024LL * 1024LL * 2)                         // # of memory blocks within a mempool
+#define memPoolBlockNum (1024LL * 1024LL * 5)                         // # of memory blocks within a mempool
 
 #define FULL_MASK 0xffffffff

@@ -77,6 +77,26 @@ main(int argc, char **argv) {
 
     Graph G(input_data_graph_file, is_csr);
 
+    if (is_csr) {
+        G.remove_degree_one_layer(Q.min_degree());
+    }
+
+#ifdef SYMMETRY_BREAKING
+    if (is_csr && cmd_parser.check_cmd_option_exists("--reorder")) {
+        bool ascending = cmd_parser.get_cmd_option("--reorder") == "1";
+        G.reorder_by_degree(ascending);
+        if (cmd_parser.check_cmd_option_exists("--dump")) {
+            if (ascending) input_data_graph_file += ".1.cache";
+            else input_data_graph_file += ".0.cache";
+            G.write_csr(input_data_graph_file.c_str());
+        }
+    }
+
+    if (is_csr && Q.is_clique() && !cmd_parser.check_cmd_option_exists("--no-orientation")) {
+        G.convert_to_degree_dag();
+    }
+#endif
+
     std::cout << "Graph loaded to host memory." << std::endl;
 
 #ifdef SYMMETRY_BREAKING
@@ -106,24 +126,65 @@ main(int argc, char **argv) {
 
     check_gpu_memory();
 
+    ull edge_list_bound = (ull)G.ecount() * 2 * sizeof(int) * 2;
+    ull free_memory = GPUFreeMemory();
+    if (G.is_dag) {
+        edge_list_bound /= 2;
+    }
+    printf("edge_list_bound: %llu bytes, free_memory: %llu bytes\n", edge_list_bound, free_memory);
+    if (edge_list_bound > free_memory) {
+        printf("# no-flitering mode is activated.\n");
+        no_filtering = true;
+    }
+
     ull ret = 0;
+    bool induced_flag = (Q.is_clique() && Q.vcount() > 3);
+    if(cmd_parser.check_cmd_option_exists("--no-induced")) {
+        induced_flag = false;
+    }
+
+    if (G.max_degree() > MAX_DEGREE) {
+        induced_flag = false;
+    }
+
 #ifdef SYMMETRY_BREAKING
-    if (alpha == 1) {
+    if (induced_flag) {
+        if (!G.is_dag) {
+            printf("# join_induced\n");
+            ret = alpha * join_induced(Q, G, Q_GPU, G_GPU, CG, CG_GPU, partial_order);
+        }
+        else {
+            printf("# join_induced_orientation\n");
+            ret = join_induced_orientation(Q, G, Q_GPU, G_GPU, CG, CG_GPU);
+        }
+    }
+    else if ((alpha == 1 || G.is_dag) && !no_filtering) {
+        printf("# join_bfs_dfs\n");
         ret = join_bfs_dfs(Q, G, Q_GPU, G_GPU, CG, CG_GPU, no_memory_pool);
     }
     else {
         if (no_filtering) {
+            printf("# join_no_filtering\n");
             ret = alpha * join_no_filtering(Q, G, Q_GPU, G_GPU, CG, CG_GPU, partial_order);
         }
         else {
+            printf("# join_bfs_dfs_sym\n");
             ret = alpha * join_bfs_dfs_sym(Q, G, Q_GPU, G_GPU, CG, CG_GPU, partial_order, no_memory_pool);
         }
     }
 #else
+    printf("# join_bfs_dfs\n");
     ret = join_bfs_dfs(Q, G, Q_GPU, G_GPU, CG, CG_GPU, no_memory_pool);
 #endif
 
-    printf("\033[41;37m\nResult: %llu\n\033[0m\n", ret);
+    if (!G.is_dag || (G.is_dag && no_filtering)) {
+        printf("\033[41;37m\nResult: %llu\n\033[0m\n", ret);
+        printf("unique count: %llu\n", ret / alpha);
+    }
+    else {
+        printf("\033[41;37m\nResult: %llu\n\033[0m\n", ret * alpha);
+        printf("unique count: %llu\n", ret);
+    }
 
     Q_GPU.deallocate();
     G_GPU.deallocate();

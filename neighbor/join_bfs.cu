@@ -23,10 +23,10 @@ __global__ void count_matches_kernel_sym(
             int count = 0;
 
             // for each neighbor v1 of v0
-            for (long long j = end - 1; j >= start; j--) {
+            for (long long j = start; j < end; j++) {
                 int v1 = d_adj_array[j];
                 // condition of symmetry breaking
-                if (v1 <= v0) {
+                if (v1 >= v0) {
                     break;
                 }
                 if (d_cand_1[v1]) {
@@ -70,9 +70,9 @@ __global__ void fill_matches_kernel_sym(
             long long end = d_adj_index[v0 + 1];
             int pos = d_offsets[i];
 
-            for (long long j = end - 1; j >= start; j--) {
+            for (long long j = start; j < end; j++) {
                 int v1 = d_adj_array[j];
-                if (v1 <= v0) {
+                if (v1 >= v0) {
                     break;
                 }
                 if (d_cand_1[v1]) {
@@ -181,7 +181,7 @@ int *match_first_edge_sym(
     cudaCheck(cudaMemcpy(d_partial_order, partial_order.data(), partial_order.size() * sizeof(unsigned), cudaMemcpyHostToDevice));
 
     count_matches_kernel_sym<<<grid_size, block_size>>>(
-        d_cand_0, cand_0_size, cg.nbr_offset, cg.nbr_array, d_cand_1, d_counts, d_partial_order
+        d_cand_0, cand_0_size, cg.g_nbr_offset, cg.g_nbr_array, d_cand_1, d_counts, d_partial_order
     );
     cudaCheck(cudaDeviceSynchronize());
 
@@ -197,7 +197,7 @@ int *match_first_edge_sym(
     cudaCheck(cudaMalloc(&d_output, total_matches * sizeof(int2)));
 
     fill_matches_kernel_sym<<<grid_size, block_size>>>(
-        d_cand_0, cand_0_size, cg.nbr_offset, cg.nbr_array, d_cand_1, d_counts, d_output, d_partial_order
+        d_cand_0, cand_0_size, cg.g_nbr_offset, cg.g_nbr_array, d_cand_1, d_counts, d_output, d_partial_order
     );
     cudaCheck(cudaDeviceSynchronize());
 
@@ -237,7 +237,7 @@ int *match_first_edge(
     int grid_size = (cand_0_size + block_size - 1) / block_size;
 
     count_matches_kernel<<<grid_size, block_size>>>(
-        d_cand_0, cand_0_size, cg.nbr_offset, cg.nbr_array, d_cand_1, d_counts
+        d_cand_0, cand_0_size, cg.g_nbr_offset, cg.g_nbr_array, d_cand_1, d_counts
     );
     cudaCheck(cudaDeviceSynchronize());
 
@@ -253,7 +253,7 @@ int *match_first_edge(
     cudaCheck(cudaMalloc(&d_output, total_matches * sizeof(int2)));
 
     fill_matches_kernel<<<grid_size, block_size>>>(
-        d_cand_0, cand_0_size, cg.nbr_offset, cg.nbr_array, d_cand_1, d_counts, d_output
+        d_cand_0, cand_0_size, cg.g_nbr_offset, cg.g_nbr_array, d_cand_1, d_counts, d_output
     );
     cudaCheck(cudaDeviceSynchronize());
 
@@ -539,7 +539,7 @@ BFS_Extend(
                 if (this_set == min_set) {
                     continue;
                 }
-                if (!binary_search<int>(this_set, this_len, v)) {
+                if (!binary_search_int(this_set, this_len, v)) {
                     flag = false;
                     break;
                 }
@@ -748,7 +748,7 @@ BFS_Extend_sym(
                 break;
             }
             else if (s_partial_order[cur_query_vertex] & (1 << j)) {
-                if (v <= this_partial_matching[j]) {
+                if (v >= this_partial_matching[j]) {
                     flag = false;
                     break;
                 }
@@ -765,7 +765,7 @@ BFS_Extend_sym(
                 if (this_set == min_set) {
                     continue;
                 }
-                if (!binary_search<int>(this_set, this_len, v)) {
+                if (!binary_search_int(this_set, this_len, v)) {
                     flag = false;
                     break;
                 }

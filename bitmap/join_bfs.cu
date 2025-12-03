@@ -118,6 +118,14 @@ BFS_Extend(
     char lane_id = (threadIdx.x + blockDim.x * blockIdx.x) % warpSize;
     char warp_id_within_blk = warp_id % warpsPerBlock;
 
+    __shared__ CandLen_t *s_nbr_set[warpsPerBlock * QVMAX];
+    __shared__ CandLen_t s_nbr_len[warpsPerBlock * QVMAX];
+    __shared__ int s_prev_mapped_v[warpsPerBlock * QVMAX];
+
+    CandLen_t **bk_nbr_set = s_nbr_set + warp_id_within_blk * QVMAX;
+    CandLen_t *bk_nbr_len = s_nbr_len + warp_id_within_blk * QVMAX;
+    int bk_nbr_cnt = 0;
+
     if (lane_id == 0) {
         shared_prev_head[warp_id_within_blk] = d_MM->prev_head[warp_id];
         shared_blk_write_cnt[warp_id_within_blk] = d_MM->blk_write_cnt[warp_id];
@@ -155,6 +163,12 @@ BFS_Extend(
     ptr_high = __shfl_sync(FULL_MASK, ptr_high, 0);
     this_partial_matching = (int *)(((unsigned long long)ptr_high << 32) | ptr_low);
 
+    int *prev_mapped_v = s_prev_mapped_v + warp_id_within_blk * QVMAX;
+    if (lane_id < cur_query_vertex) {
+        prev_mapped_v[lane_id] = cg.d_get_mapped_v(lane_id, this_partial_matching[lane_id]);
+    }
+    __syncwarp();
+
     // Each block can write a maximum number of partial matchings
     const int blk_partial_max_num = memPoolBlockIntNum / (cur_query_vertex + 1);
     const unsigned bn_mask_u = Q.d_bknbrs_[cur_query_vertex];
@@ -166,14 +180,31 @@ BFS_Extend(
     CandLen_t min_len = 0;
     CandLen_t *min_set = cg.d_get_candidates(first_uu, cur_query_vertex, this_partial_matching[first_uu], min_len);
 
+    bk_nbr_set[0] = min_set;
+    bk_nbr_len[0] = min_len;
+    bk_nbr_cnt = 1;
+
     while (bn_mask) {
         char uu = __ffs(bn_mask) - 1;
         bn_mask &= ~(1u << uu);
         CandLen_t this_len = 0;
         CandLen_t *this_set = cg.d_get_candidates(uu, cur_query_vertex, this_partial_matching[uu], this_len);
+
         if (this_len < min_len) {
             min_len = this_len;
             min_set = this_set;
+
+            bk_nbr_set[bk_nbr_cnt] = bk_nbr_set[0];
+            bk_nbr_len[bk_nbr_cnt] = bk_nbr_len[0];
+            bk_nbr_cnt++;
+
+            bk_nbr_set[0] = min_set;
+            bk_nbr_len[0] = min_len;
+        }
+        else {
+            bk_nbr_set[bk_nbr_cnt] = this_set;
+            bk_nbr_len[bk_nbr_cnt] = this_len;
+            bk_nbr_cnt++;
         }
     }
 
@@ -193,28 +224,14 @@ BFS_Extend(
         // Make sure that the real v has not been mapped before
         int real_v = cg.d_get_mapped_v(cur_query_vertex, v);
         for (char j = 0; j < cur_query_vertex; j++) {
-            if (cg.d_get_mapped_v(j, this_partial_matching[j]) == real_v) {
+            if (prev_mapped_v[j] == real_v) {
                 flag = false;
                 break;
             }
         }
 
-        if (flag) {
-            // For each backward neighbor uu of u
-            unsigned bn_mask = bn_mask_u;
-            while (bn_mask) {
-                char uu = __ffs(bn_mask) - 1;
-                bn_mask &= ~(1u << uu);
-                CandLen_t this_len = 0;
-                CandLen_t *this_set = cg.d_get_candidates(uu, cur_query_vertex, this_partial_matching[uu], this_len);
-                if (this_set == min_set) {
-                    continue;
-                }
-                if (!binary_search<CandLen_t>(this_set, this_len, v)) {
-                    flag = false;
-                    break;
-                }
-            }
+        for (int k = 1; flag && k < bk_nbr_cnt; k++) {
+            flag = binary_search<CandLen_t>(bk_nbr_set[k], bk_nbr_len[k], v);
         }
         __syncwarp();
 

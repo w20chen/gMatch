@@ -154,7 +154,7 @@ dfs_kernel(
                 if (prefix_sum > lane_id) {
                     lane_parent_idx = i;
                     lane_idx_within_set = lane_id - prefix_sum + e_ptr->cand_len[i];
-                    lane_v = e_ptr->cand_set[lane_parent_idx][lane_idx_within_set];
+                    lane_v = __ldg(&e_ptr->cand_set[lane_parent_idx][lane_idx_within_set]);
                     break;
                 }
             }
@@ -255,7 +255,7 @@ dfs_kernel(
                         continue;
                     }
 
-                    if (false == binary_search<int>(this_set, this_len, lane_v)) {
+                    if (false == binary_search_int(this_set, this_len, lane_v)) {
                         flag = false;
                         break;
                     }
@@ -488,7 +488,7 @@ dfs_kernel_sym(
                 if (prefix_sum > lane_id) {
                     lane_parent_idx = i;
                     lane_idx_within_set = lane_id - prefix_sum + e_ptr->cand_len[i];
-                    lane_v = e_ptr->cand_set[lane_parent_idx][lane_idx_within_set];
+                    lane_v = __ldg(&e_ptr->cand_set[lane_parent_idx][lane_idx_within_set]);
                     break;
                 }
             }
@@ -541,6 +541,8 @@ dfs_kernel_sym(
                 unsigned bn_mask = s_bknbrs[this_u];
                 // For each backward neighbor uu of this_u (enumerate uu in descending order)
 
+                bool reach_bound = false;
+
                 while (bn_mask) {
                     int uu = 31 - __clz(bn_mask);
                     bn_mask &= ~(1u << uu);
@@ -561,8 +563,9 @@ dfs_kernel_sym(
                             break;
                         }
                         else if (partial_order_u & (1 << (j + 1))) {
-                            if (lane_v < vv) {
+                            if (lane_v > vv) {
                                 flag = false;
+                                reach_bound = true;
                                 break;
                             }
                         }
@@ -588,8 +591,9 @@ dfs_kernel_sym(
                         break;
                     }
                     else if (partial_order_u & (1 << uu)) {
-                        if (lane_v < vv) {
+                        if (lane_v > vv) {
                             flag = false;
+                            reach_bound = true;
                             break;
                         }
                     }
@@ -609,7 +613,7 @@ dfs_kernel_sym(
                         continue;
                     }
 
-                    if (false == binary_search<int>(this_set, this_len, lane_v)) {
+                    if (false == binary_search_int(this_set, this_len, lane_v)) {
                         flag = false;
                         break;
                     }
@@ -630,12 +634,21 @@ dfs_kernel_sym(
                             break;
                         }
                         else if (partial_order_u & (1 << j)) {
-                            if (lane_v < vv) {
+                            if (lane_v > vv) {
                                 flag = false;
+                                reach_bound = true;
                                 break;
                             }
                         }
                         j--;
+                    }
+                }
+
+                if (lane_id == warpSize - 1 && reach_bound && lane_v != -1) {
+                    e_ptr->start_set_idx = lane_parent_idx + 1;
+                    e_ptr->start_idx_within_set = 0;
+                    if (e_ptr->cand_len[e_ptr->start_set_idx] == -1) {
+                        e_ptr->start_set_idx = -1;
                     }
                 }
             }
@@ -809,12 +822,12 @@ dfs_kernel_clique(
                         lane_id, begin_len);
 
         if (lane_id == 0) {
-            int tmp = this_stk_elem_fixed[0].mapped_v[0];
-            this_stk_elem_fixed[0].mapped_v[0] = this_stk_elem_fixed[1].mapped_v[0];
-            this_stk_elem_fixed[1].mapped_v[0] = tmp;
+            // int tmp = this_stk_elem_fixed[0].mapped_v[0];
+            // this_stk_elem_fixed[0].mapped_v[0] = this_stk_elem_fixed[1].mapped_v[0];
+            // this_stk_elem_fixed[1].mapped_v[0] = tmp;
 
-            this_stk_elem_fixed[0].mapped_v_nbr_set[0] = cg.get_nbr(this_stk_elem_fixed[0].mapped_v[0], this_stk_elem_fixed[0].mapped_v_nbr_len[0]);
-            this_stk_elem_fixed[1].mapped_v_nbr_set[0] = cg.get_nbr(this_stk_elem_fixed[1].mapped_v[0], this_stk_elem_fixed[1].mapped_v_nbr_len[0]);
+            // this_stk_elem_fixed[0].mapped_v_nbr_set[0] = cg.get_nbr(this_stk_elem_fixed[0].mapped_v[0], this_stk_elem_fixed[0].mapped_v_nbr_len[0]);
+            // this_stk_elem_fixed[1].mapped_v_nbr_set[0] = cg.get_nbr(this_stk_elem_fixed[1].mapped_v[0], this_stk_elem_fixed[1].mapped_v_nbr_len[0]);
         }
 
         int this_stk_len = begin_len + 1;
@@ -834,7 +847,7 @@ dfs_kernel_clique(
                 if (prefix_sum > lane_id) {
                     lane_parent_idx = i;
                     lane_idx_within_set = lane_id - prefix_sum + e_ptr->cand_len[i];
-                    lane_v = e_ptr->cand_set[lane_parent_idx][lane_idx_within_set];
+                    lane_v = __ldg(&e_ptr->cand_set[lane_parent_idx][lane_idx_within_set]);
                     break;
                 }
             }
@@ -877,6 +890,7 @@ dfs_kernel_clique(
 
             if (flag) {
                 int cur_parent = lane_parent_idx;
+                bool reach_bound = false;
 
                 for (int uu = this_stk_len - 2; uu >= 0; uu--) {
                     int vv;
@@ -889,8 +903,13 @@ dfs_kernel_clique(
                         cur_parent = this_stk_elem[uu].parent_idx[cur_parent];
                     }
 
+                    // if (lane_v >= vv) {
+                    //     flag = false;
+                    //     break;
+                    // }
                     if (lane_v >= vv) {
                         flag = false;
+                        reach_bound = true;
                         break;
                     }
 
@@ -909,9 +928,17 @@ dfs_kernel_clique(
                         continue;
                     }
 
-                    if (false == binary_search<int>(this_set, this_len, lane_v)) {
+                    if (false == binary_search_int(this_set, this_len, lane_v)) {
                         flag = false;
                         break;
+                    }
+                }
+
+                if (lane_id == warpSize - 1 && reach_bound && lane_v != -1) {
+                    e_ptr->start_set_idx = lane_parent_idx + 1;
+                    e_ptr->start_idx_within_set = 0;
+                    if (e_ptr->cand_len[e_ptr->start_set_idx] == -1) {
+                        e_ptr->start_set_idx = -1;
                     }
                 }
             }
@@ -1124,8 +1151,18 @@ bfs_end:
     printf("Shared memory usage: %.2f KB per thread block\n", dynamic_shared_size / 1024.);
     printf("DFS kernel theoretical occupancy %.2f%%\n", calculateOccupancy((const void *)dfs_kernel, threadsPerBlock, dynamic_shared_size));
 
+    int thread_block_num = 0;
+    int current_device;
+    cudaGetDevice(&current_device);
+    cudaDeviceProp prop;
+    cudaGetDeviceProperties(&prop, current_device);
+    int num_SMs = prop.multiProcessorCount;
+    cudaOccupancyMaxActiveBlocksPerMultiprocessor(&thread_block_num, dfs_kernel, threadsPerBlock, dynamic_shared_size);
+    thread_block_num = thread_block_num * num_SMs;
+    printf("#thread blocks per SM: %d, #SMs: %d, #threads per block: %d\n", thread_block_num / num_SMs, num_SMs, threadsPerBlock);
+
     TIME_START();
-    dfs_kernel <<< maxBlocks, threadsPerBlock, dynamic_shared_size >>> (
+    dfs_kernel <<< thread_block_num, threadsPerBlock, dynamic_shared_size >>> (
         Q, G, cg, d_sum,
         d_MM, partial_matching_cnt,
         begin_offset, l
@@ -1307,9 +1344,19 @@ bfs_end:
     printf("Shared memory usage: %.2f KB per thread block\n", dynamic_shared_size / 1024.);
     printf("DFS kernel theoretical occupancy %.2f%%\n", calculateOccupancy((const void *)dfs_kernel, threadsPerBlock, dynamic_shared_size));
 
+    int thread_block_num = 0;
+    int current_device;
+    cudaGetDevice(&current_device);
+    cudaDeviceProp prop;
+    cudaGetDeviceProperties(&prop, current_device);
+    int num_SMs = prop.multiProcessorCount;
+
     TIME_START();
     if (!q.is_clique()) {
-        dfs_kernel_sym <<< maxBlocks, threadsPerBlock, dynamic_shared_size >>> (
+        cudaOccupancyMaxActiveBlocksPerMultiprocessor(&thread_block_num, dfs_kernel, threadsPerBlock, dynamic_shared_size);
+        thread_block_num = thread_block_num * num_SMs;
+        printf("#thread blocks per SM: %d, #SMs: %d, #threads per block: %d\n", thread_block_num / num_SMs, num_SMs, threadsPerBlock);
+        dfs_kernel_sym <<< thread_block_num, threadsPerBlock, dynamic_shared_size >>> (
             Q, G, cg, d_sum,
             d_MM, partial_matching_cnt,
             begin_offset, l,
@@ -1318,7 +1365,10 @@ bfs_end:
     }
     else {
         printf("### clique\n");
-        dfs_kernel_clique <<< maxBlocks, threadsPerBlock, dynamic_shared_size >>> (
+        cudaOccupancyMaxActiveBlocksPerMultiprocessor(&thread_block_num, dfs_kernel_clique, threadsPerBlock, dynamic_shared_size);
+        thread_block_num = thread_block_num * num_SMs;
+        printf("#thread blocks per SM: %d, #SMs: %d, #threads per block: %d\n", thread_block_num / num_SMs, num_SMs, threadsPerBlock);
+        dfs_kernel_clique <<< thread_block_num, threadsPerBlock, dynamic_shared_size >>> (
             Q, G, cg, d_sum,
             d_MM, partial_matching_cnt,
             begin_offset, l

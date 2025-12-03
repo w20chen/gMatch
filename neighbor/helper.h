@@ -218,19 +218,45 @@ private:
 };
 
 
-template <typename T>
-static __device__ __host__ bool
-binary_search(T *nums, T n, T value) {
-    T low = 0;
-    T high = n - 1;
+static __device__ __forceinline__ bool
+binary_search_int(const int *__restrict__ nums, int n, int value) {
+    int low = 0;
+    int high = n - 1;
+
     while (low <= high) {
-        T mid = ((low + high) >> 1);
-        T t = nums[mid];
-        bool cond = t >= value;
-        high = cond ? (mid - 1) : high;
-        low = cond ? low : (mid + 1);
+        int mid = (low + high) >> 1;
+        int t = __ldg(&nums[mid]);
+        if (t < value) {
+            low = mid + 1;
+        }
+        else {
+            high = mid - 1;
+        }
     }
-    return (low < n) && (nums[low] == value);
+    return (low < n) && (__ldg(&nums[low]) == value);
+}
+
+
+static __device__ __forceinline__ int
+binary_search_index(const int *__restrict__ nums, int n, int value) {
+    int low = 0;
+    int high = n - 1;
+
+    while (low <= high) {
+        int mid = (low + high) >> 1;
+        int t = __ldg(&nums[mid]);
+        if (t < value) {
+            low = mid + 1;
+        }
+        else {
+            high = mid - 1;
+        }
+    }
+
+    if (low < n && __ldg(&nums[low]) == value) {
+        return low;
+    }
+    return -1;
 }
 
 
@@ -374,5 +400,118 @@ check_gpu_memory() {
     << static_cast<unsigned long>(total_kernel)                 \
     << "(kernel)\n";
 
+
+__device__ static int warp_set_intersection(
+    const int* __restrict__ set1, int len1,
+    const int* __restrict__ set2, int len2,
+    int* __restrict__ output_buffer
+) {
+    const int lane_id = threadIdx.x % warpSize;
+
+    if (len1 == 0 || len2 == 0) {
+        return 0;
+    }
+
+    const int* small_set;
+    const int* large_set;
+    int small_len, large_len;
+
+    if (len1 <= len2) {
+        small_set = set1;
+        large_set = set2;
+        small_len = len1;
+        large_len = len2;
+    }
+    else {
+        small_set = set2;
+        large_set = set1;
+        small_len = len2;
+        large_len = len1;
+    }
+
+    // if (small_len <= 4) {
+    //     int count = 0;
+    //     if (lane_id == 0) {
+    //         int i = 0, j = 0;
+    //         while (i < small_len && j < large_len) {
+    //             if (small_set[i] == large_set[j]) {
+    //                 output_buffer[count++] = small_set[i];
+    //                 i++; j++;
+    //             }
+    //             else if (small_set[i] < large_set[j]) {
+    //                 i++;
+    //             }
+    //             else {
+    //                 j++;
+    //             }
+    //         }
+    //     }
+    //     count = __shfl_sync(0xffffffff, count, 0);
+    //     return count;
+    // }
+
+    int total_count = 0;
+    const int num_iterations = ceil_div(small_len, warpSize);
+
+    for (int iter = 0; iter < num_iterations; iter++) {
+        int base_index = iter * warpSize;
+        int current_idx = base_index + lane_id;
+
+        int target;
+        bool found = false;
+
+        if (current_idx < small_len) {
+            target = small_set[current_idx];
+
+            int left = 0;
+            int right = large_len - 1;
+            while (left <= right) {
+                int mid = (left + right) / 2;
+                int mid_val = large_set[mid];
+                if (mid_val == target) {
+                    found = true;
+                    break;
+                }
+                else if (mid_val < target) {
+                    left = mid + 1;
+                }
+                else {
+                    right = mid - 1;
+                }
+            }
+        }
+
+        unsigned found_mask = __ballot_sync(0xffffffff, found);
+
+        if (found_mask == 0) {
+            continue;
+        }
+
+        int batch_count = __popc(found_mask);
+        int thread_pos = __popc(found_mask & ((1 << lane_id) - 1));
+
+        if (found) {
+            output_buffer[total_count + thread_pos] = target;
+        }
+
+        total_count += batch_count;
+        __syncwarp();
+    }
+
+    return total_count;
+}
+
+static size_t GPUFreeMemory() {
+    size_t free_byte = 0;
+    size_t total_byte = 0;
+
+    cudaError_t err = cudaMemGetInfo(&free_byte, &total_byte);
+
+    if (err != cudaSuccess) {
+        printf("Error: %s\n", cudaGetErrorString(err));
+        exit(1);
+    }
+    return free_byte;
+}
 
 #endif

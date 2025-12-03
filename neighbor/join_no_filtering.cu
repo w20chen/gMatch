@@ -148,8 +148,8 @@ dfs_kernel_no_filtering(
                 v0 = -1;
             }
             else {
-                v0 = upper_bound(cg.nbr_offset + v0, (G.vcount() + 1 - v0), edge_index) - 1 + v0;
-                v1 = cg.nbr_array[edge_index];
+                v0 = upper_bound(cg.g_nbr_offset + v0, (G.vcount() + 1 - v0), edge_index) - 1 + v0;
+                v1 = cg.g_nbr_array[edge_index];
             }
         }
         __syncwarp();
@@ -162,7 +162,7 @@ dfs_kernel_no_filtering(
         }
 
         if (s_partial_order[1] & (1 << 0)) {
-            if (v1 <= v0) {
+            if (v1 >= v0) {
                 continue;
             }
         }
@@ -186,7 +186,7 @@ dfs_kernel_no_filtering(
                 if (prefix_sum > lane_id) {
                     lane_parent_idx = i;
                     lane_idx_within_set = lane_id - prefix_sum + e_ptr->cand_len[i];
-                    lane_v = e_ptr->cand_set[lane_parent_idx][lane_idx_within_set];
+                    lane_v = __ldg(&e_ptr->cand_set[lane_parent_idx][lane_idx_within_set]);
                     break;
                 }
             }
@@ -219,6 +219,8 @@ dfs_kernel_no_filtering(
                 unsigned bn_mask = Q.d_bknbrs_[this_u];
                 // For each backward neighbor uu of this_u (enumerate uu in descending order)
 
+                bool reach_bound = false;
+
                 while (bn_mask) {
                     int uu = 31 - __clz(bn_mask);
                     bn_mask &= ~(1u << uu);
@@ -239,8 +241,9 @@ dfs_kernel_no_filtering(
                             break;
                         }
                         else if (s_partial_order[this_u] & (1 << (j + 1))) {
-                            if (lane_v < vv) {
+                            if (lane_v > vv) {
                                 flag = false;
+                                reach_bound = true;
                                 break;
                             }
                         }
@@ -264,8 +267,9 @@ dfs_kernel_no_filtering(
                         break;
                     }
                     else if (s_partial_order[this_u] & (1 << uu)) {
-                        if (lane_v < vv) {
+                        if (lane_v > vv) {
                             flag = false;
+                            reach_bound = true;
                             break;
                         }
                     }
@@ -277,7 +281,7 @@ dfs_kernel_no_filtering(
                         continue;
                     }
 
-                    if (false == binary_search<int>(this_set, this_len, lane_v)) {
+                    if (false == binary_search_int(this_set, this_len, lane_v)) {
                         flag = false;
                         break;
                     }
@@ -298,12 +302,21 @@ dfs_kernel_no_filtering(
                             break;
                         }
                         else if (s_partial_order[this_u] & (1 << j)) {
-                            if (lane_v < vv) {
+                            if (lane_v > vv) {
                                 flag = false;
+                                reach_bound = true;
                                 break;
                             }
                         }
                         j--;
+                    }
+                }
+
+                if (lane_id == warpSize - 1 && reach_bound && lane_v != -1) {
+                    e_ptr->start_set_idx = lane_parent_idx + 1;
+                    e_ptr->start_idx_within_set = 0;
+                    if (e_ptr->cand_len[e_ptr->start_set_idx] == -1) {
+                        e_ptr->start_set_idx = -1;
                     }
                 }
             }
@@ -463,8 +476,8 @@ dfs_kernel_no_filtering_clique(
                 v0 = -1;
             }
             else {
-                v0 = upper_bound(cg.nbr_offset + v0, (G.vcount() + 1 - v0), edge_index) - 1 + v0;
-                v1 = cg.nbr_array[edge_index];
+                v0 = upper_bound(cg.g_nbr_offset + v0, (G.vcount() + 1 - v0), edge_index) - 1 + v0;
+                v1 = cg.g_nbr_array[edge_index];
             }
         }
         __syncwarp();
@@ -499,7 +512,7 @@ dfs_kernel_no_filtering_clique(
                 if (prefix_sum > lane_id) {
                     lane_parent_idx = i;
                     lane_idx_within_set = lane_id - prefix_sum + e_ptr->cand_len[i];
-                    lane_v = e_ptr->cand_set[lane_parent_idx][lane_idx_within_set];
+                    lane_v = __ldg(&e_ptr->cand_set[lane_parent_idx][lane_idx_within_set]);
                     break;
                 }
             }
@@ -528,6 +541,7 @@ dfs_kernel_no_filtering_clique(
 
             if (flag) {
                 int cur_parent = lane_parent_idx;
+                bool reach_bound = false;
 
                 for (int uu = this_stk_len - 2; uu >= 0; uu--) {
                     int vv;
@@ -542,6 +556,7 @@ dfs_kernel_no_filtering_clique(
 
                     if (lane_v >= vv) {
                         flag = false;
+                        reach_bound = true;
                         break;
                     }
 
@@ -552,9 +567,17 @@ dfs_kernel_no_filtering_clique(
                         continue;
                     }
 
-                    if (false == binary_search<int>(this_set, this_len, lane_v)) {
+                    if (false == binary_search_int(this_set, this_len, lane_v)) {
                         flag = false;
                         break;
+                    }
+                }
+
+                if (lane_id == warpSize - 1 && reach_bound && lane_v != -1) {
+                    e_ptr->start_set_idx = lane_parent_idx + 1;
+                    e_ptr->start_idx_within_set = 0;
+                    if (e_ptr->cand_len[e_ptr->start_set_idx] == -1) {
+                        e_ptr->start_set_idx = -1;
                     }
                 }
             }
@@ -647,6 +670,290 @@ dfs_kernel_no_filtering_clique(
 #endif
 }
 
+__global__ void static
+dfs_kernel_no_filtering_orientation(
+    Graph_GPU Q,
+    Graph_GPU G,
+    candidate_graph_GPU cg,
+    ull *sum,
+    ull *d_begin_offset
+) {
+
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+    int warp_id = tid / warpSize;
+    int warp_id_within_blk = warp_id % warpsPerBlock;
+    int lane_id = tid % warpSize;
+
+    extern __shared__ char shared_mem[];
+
+    stk_elem_fixed *s_stk_elem_fixed = (stk_elem_fixed *)shared_mem;
+    stk_elem *s_stk_elem = (stk_elem *)(s_stk_elem_fixed + warpsPerBlock * BEGIN_LEN);
+
+    stk_elem_fixed *this_stk_elem_fixed = s_stk_elem_fixed + warp_id_within_blk * BEGIN_LEN;
+    stk_elem *this_stk_elem = s_stk_elem + warp_id_within_blk * (Q.vcount() - BEGIN_LEN) - BEGIN_LEN;
+
+    __syncthreads();
+
+    const ull max_offset = (ull)G.ecount();
+
+    int v0 = 0;
+    int v1 = 0;
+
+    while (true) {
+        if (lane_id == 0) {
+            ull edge_index = atomicAdd(d_begin_offset, 1);
+            if (edge_index >= max_offset) {
+                v0 = -1;
+            }
+            else {
+                v0 = upper_bound(cg.g_nbr_offset + v0, (G.vcount() + 1 - v0), edge_index) - 1 + v0;
+                v1 = cg.g_nbr_array[edge_index];
+            }
+        }
+        __syncwarp();
+
+        v0 = __shfl_sync(FULL_MASK, v0, 0);
+        v1 = __shfl_sync(FULL_MASK, v1, 0);
+
+        if (v0 == -1) {
+            break;
+        }
+
+        init_dfs_stacks(Q, cg, this_stk_elem_fixed, this_stk_elem, lane_id, v0, v1);
+
+        int this_stk_len = BEGIN_LEN + 1;
+
+        while (this_stk_len > BEGIN_LEN) {
+            int this_u = this_stk_len - 1;
+            stk_elem *e_ptr = &this_stk_elem[this_u];
+
+            // Process the candidate set of the current stack element
+            int lane_parent_idx = -1;
+            int lane_idx_within_set = -1;
+            int lane_v = -1;
+
+            int prefix_sum = -e_ptr->start_idx_within_set;
+            for (int i = e_ptr->start_set_idx; e_ptr->cand_len[i] != -1; i++) {
+                prefix_sum += e_ptr->cand_len[i];
+                if (prefix_sum > lane_id) {
+                    lane_parent_idx = i;
+                    lane_idx_within_set = lane_id - prefix_sum + e_ptr->cand_len[i];
+                    lane_v = __ldg(&e_ptr->cand_set[lane_parent_idx][lane_idx_within_set]);
+                    break;
+                }
+            }
+
+            bool flag = true;
+            if (lane_v == -1) {
+                flag = false;
+            }
+
+            if (lane_id == warpSize - 1) {
+                if (lane_v == -1) {
+                    e_ptr->start_set_idx = -1;
+                }
+                else if (lane_idx_within_set == e_ptr->cand_len[lane_parent_idx] - 1) {
+                    e_ptr->start_set_idx = lane_parent_idx + 1;
+                    e_ptr->start_idx_within_set = 0;
+                    if (e_ptr->cand_len[e_ptr->start_set_idx] == -1) {
+                        e_ptr->start_set_idx = -1;
+                    }
+                }
+                else {
+                    e_ptr->start_set_idx = lane_parent_idx;
+                    e_ptr->start_idx_within_set = lane_idx_within_set + 1;
+                }
+            }
+
+            if (flag) {
+                int cur_parent = lane_parent_idx;
+                int j = this_stk_len - 2;
+                unsigned bn_mask = Q.d_bknbrs_[this_u];
+                // For each backward neighbor uu of this_u (enumerate uu in descending order)
+
+                while (bn_mask) {
+                    int uu = 31 - __clz(bn_mask);
+                    bn_mask &= ~(1u << uu);
+                    int vv = -1;
+
+                    while (j > uu) {
+                        if (j < BEGIN_LEN) {
+                            vv = this_stk_elem_fixed[j].mapped_v[cur_parent];
+                        }
+                        else {
+                            vv = this_stk_elem[j].mapped_v[cur_parent];
+                            cur_parent = this_stk_elem[j].parent_idx[cur_parent];
+                        }
+                        j--;
+
+                        if (vv == lane_v) {
+                            flag = false;
+                            break;
+                        }
+                    }
+
+                    if (flag == false) {
+                        break;
+                    }
+
+                    if (j < BEGIN_LEN) {
+                        vv = this_stk_elem_fixed[j].mapped_v[cur_parent];
+                    }
+                    else {
+                        vv = this_stk_elem[j].mapped_v[cur_parent];
+                        cur_parent = this_stk_elem[j].parent_idx[cur_parent];
+                    }
+                    j--;
+
+                    if (vv == lane_v) {
+                        flag = false;
+                        break;
+                    }
+
+                    int this_len = 0;
+                    int *this_set = cg.get_nbr(vv, this_len);
+
+                    if (this_set == e_ptr->cand_set[lane_parent_idx]) {
+                        continue;
+                    }
+
+                    if (false == binary_search_int(this_set, this_len, lane_v)) {
+                        flag = false;
+                        break;
+                    }
+                }
+
+                if (flag) {
+                    while (j >= 0) {
+                        int vv = -1;
+                        if (j < BEGIN_LEN) {
+                            vv = this_stk_elem_fixed[j].mapped_v[cur_parent];
+                        }
+                        else {
+                            vv = this_stk_elem[j].mapped_v[cur_parent];
+                            cur_parent = this_stk_elem[j].parent_idx[cur_parent];
+                        }
+                        if (vv == lane_v) {
+                            flag = false;
+                            break;
+                        }
+                        j--;
+                    }
+                }
+            }
+
+            unsigned int flag_mask = __ballot_sync(FULL_MASK, flag);
+
+            if (flag_mask == 0) {
+                if (lane_id == 0) {
+                    do {
+                        if (this_stk_elem[this_stk_len - 1].start_set_idx != -1) {
+                            break;
+                        }
+                        else {
+                            this_stk_len--;
+                        }
+                    }
+                    while (this_stk_len > BEGIN_LEN);
+                }
+                this_stk_len = __shfl_sync(FULL_MASK, this_stk_len, 0);
+            }
+            else {  // flag_mask != 0
+                if (this_stk_len == Q.vcount()) {
+                    if (lane_id == 0) {
+                        sum[warp_id] += (ull)__popc(flag_mask);
+                        do {
+                            if (this_stk_elem[this_stk_len - 1].start_set_idx != -1) {
+                                break;
+                            }
+                            else {
+                                this_stk_len--;
+                            }
+                        }
+                        while (this_stk_len > BEGIN_LEN);
+                    }
+                    this_stk_len = __shfl_sync(FULL_MASK, this_stk_len, 0);
+                }
+                else {  // *this_stk_len != Q.vcount()
+                    if (lane_id == 0) {
+                        this_stk_elem[this_stk_len].start_set_idx = 0;
+                        this_stk_elem[this_stk_len].start_idx_within_set = 0;
+                        this_stk_len++;
+                    }
+                    this_stk_len = __shfl_sync(FULL_MASK, this_stk_len, 0);
+
+                    // "e_ptr" is the pointer of previous stack top
+                    // "new_e_ptr" is the pointer of the level we are about to search
+                    int next_u = this_stk_len - 1;
+                    stk_elem *new_e_ptr = &this_stk_elem[next_u];
+
+                    if (lane_id == 0) {
+                        new_e_ptr->cand_len[__popc(flag_mask)] = -1;
+                    }
+                    __syncwarp();
+
+                    // Select candidates at the current level
+                    // Organize their minimum candidate sets
+                    // Proceed to the next level
+
+                    int chosen_index = -1;
+                    if (flag_mask & (1 << lane_id)) {
+                        unsigned mask_low = flag_mask & ((1 << (lane_id + 1)) - 1);
+                        chosen_index = __popc(mask_low) - 1;
+                    }
+
+                    if (chosen_index >= 0) {
+                        e_ptr->parent_idx[chosen_index] = lane_parent_idx;
+                        e_ptr->mapped_v[chosen_index] = lane_v;
+
+                        int j = this_stk_len - 2;
+                        int cur_parent = chosen_index;
+                        int min_len = INT32_MAX;
+                        int *min_set = nullptr;
+                        unsigned bn_mask = Q.d_bknbrs_[next_u];
+
+                        while (bn_mask) {
+                            int uu = 31 - __clz(bn_mask);
+                            bn_mask &= ~(1u << uu);
+                            int vv = -1;
+
+                            while (j > uu) {
+                                if (j >= BEGIN_LEN) {
+                                    cur_parent = this_stk_elem[j].parent_idx[cur_parent];
+                                    j--;
+                                }
+                                else {
+                                    j = uu;
+                                    break;
+                                }
+                            }
+
+                            // Now j == uu
+                            if (j < BEGIN_LEN) {
+                                vv = this_stk_elem_fixed[j].mapped_v[cur_parent];
+                            }
+                            else {
+                                vv = this_stk_elem[j].mapped_v[cur_parent];
+                            }
+
+                            int this_len = 0;
+                            int *this_set = cg.get_nbr(vv, this_len);
+
+                            if (min_len > this_len) {
+                                min_len = this_len;
+                                min_set = this_set;
+                            }
+                        }
+
+                        new_e_ptr->cand_set[chosen_index] = min_set;
+                        new_e_ptr->cand_len[chosen_index] = min_len;
+                    }
+                    __syncwarp();
+                }
+            }
+        }
+    }
+}
 
 ull
 join_no_filtering(
@@ -692,10 +999,18 @@ join_no_filtering(
     }
     else {
         printf("### clique\n");
-        dfs_kernel_no_filtering_clique <<< maxBlocks, threadsPerBlock, dynamic_shared_size >>> (
-            Q, G, cg, d_sum,
-            d_begin_offset
-        );
+        if (g.is_dag == false) {
+            dfs_kernel_no_filtering_clique <<< maxBlocks, threadsPerBlock, dynamic_shared_size >>> (
+                Q, G, cg, d_sum,
+                d_begin_offset
+            );
+        }
+        else {
+            dfs_kernel_no_filtering_orientation <<< maxBlocks, threadsPerBlock, dynamic_shared_size >>> (
+                Q, G, cg, d_sum,
+                d_begin_offset
+            );
+        }
     }
 
     cudaCheck(cudaGetLastError());
