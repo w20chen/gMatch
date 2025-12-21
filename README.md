@@ -10,7 +10,7 @@ This project implements a GPU-accelerated subgraph matching algorithm featuring:
 - Symmetry breaking techniques to ensure each unique subgraph is detected exactly once
 - A GPU-optimized data structure for retrieving candidate edges
 - A bitmap-based data structure to accelerate set intersection
-- Load balancing techniques for ensuring inter-warp workload balance via queuing and memory pool utilization
+- Load balancing techniques for ensuring inter-warp workload balance
 
 ## Compile
 This project requires CMake (version 3.30.1), Make (version 4.3), GCC (version 10.5.0), and NVCC (version 12.5). You can compile the code by executing the following commands.
@@ -21,7 +21,9 @@ After successful compilation, the binary files are created in the `bitmap/build`
 
 
 ## Graph File Format
-gMatch only accepts a specific input format. An invalid format is likely to cause errors. A valid graph file follows the structure below:
+### Text Format
+
+gMatch only accepts specific input formats. An invalid format is likely to cause errors. A valid graph file follows the structure below:
 
 1. **Header Line** (`t`):
     - Starts with `t`, followed by two integers representing:
@@ -40,12 +42,20 @@ gMatch only accepts a specific input format. An invalid format is likely to caus
 
 This format defines an undirected graph where vertices are labeled and degrees are explicitly listed for each node. For a graph $g$, the first line should be `t` $|V(g)|$ $|E(g)|$, followed by $|V(g)|$ vertex lines and $|E(g)|$ edge lines. Each vertex $v\in V(g)$ has a unique vertex ID from 0 to $|V(g)|-1$.
 
+### Binary Format
+
 gMatch also supports a **CSR (Compressed Sparse Row) binary format** for large data graphs, structured as follows: The file begins with two **32-bit integers** representing the **vertex count** $|V(G)|$ and **edge count** $|E(G)|$. Next comes the **offset array**, consisting of $|V(G)| + 1$ **64-bit unsigned integers (unsigned long long)**, where the $i$-th entry points to the start of vertex $i$'s edges in the edge array (0-based), and the last entry equals $2 \times |E(G)|$. Following this is the **vertex label array**, storing $|V(G)|$ **32-bit integers**, with the $i$-th value representing the label of vertex $i$. Finally, the **edge data** consists of $2 \times |E(G)|$ **32-bit integers**, organized as consecutive destination vertices for each edge, with all edges sorted by their source vertex as defined by the offset array.
 
 **To specify the input format, use the command-line parameter `-b` for CSR binary format and `-d` for text format.**
 
 ## Datasets
-TBD.
+
+| Dataset | Download Link |
+|--------|----------|
+| dblp, enron, gowalla, github, wikitalk | https://zenodo.org/records/17990755 |
+| pokec, friendster, orkut, livejournal, ldbc_sf10 | https://zenodo.org/records/17994634 |
+| rmat | https://zenodo.org/records/17998026 |
+| ldbc_sf3, ldbc_sf10, ldbc_sf30, ldbc_sf100 | https://zenodo.org/records/17996944 |
 
 ## Test
 The correctness of the algorithm can be verified using the following commands:
@@ -54,7 +64,6 @@ The correctness of the algorithm can be verified using the following commands:
 cd test
 python3 test.py --binary ../bitmap/build/SubgraphMatching
 python3 test.py --binary ../hash_table/build/SubgraphMatching
-python3 test.py --binary ../neighbor/build/SubgraphMatching
 ```
 
 ## Execute
@@ -86,7 +95,7 @@ This runs all queries in the directory `dataset/dblp/label_16/query_graph/12` on
 
 ### 3. Run with Neighborhood Intersection
 
-`neighbor/build/SubgraphMatching` is designed for large data graphs (i.e., LiveJournal, LDBC, Orkut, Friendster, and Pokec) where candidate graph is deactivated, and local candidate sets are computed by intersecting the neighborhoods of backward neighbors. This program processes unlabeled graphs by default.
+`neighbor/build/SubgraphMatching` is designed for large data graphs (i.e., LiveJournal, LDBC, Orkut, Friendster, RMAT, and Pokec) where candidate graph is deactivated, and local candidate sets are computed by intersecting the neighborhoods of backward neighbors. This program processes **unlabeled** graphs by default.
 
 ```bash
  ./neighbor/build/SubgraphMatching -b dataset/orkut/label_1/orkut.bin -q patterns/p2
