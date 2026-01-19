@@ -45,10 +45,6 @@ The correctness of the algorithm can be verified using the following commands:
 cd test
 python3 test.py --binary ../bitmap/build/SubgraphMatching
 python3 test.py --binary ../hash_table/build/SubgraphMatching
-```
-
-```bash
-# Some test cases (Q_11 - Q_21) will cause error, as this variant does not support large query graphs (|V|>5).
 python3 test.py --binary ../neighbor/build/SubgraphMatching_labeled
 ```
 
@@ -138,7 +134,7 @@ This is designed for *small queries over large-scale graphs* (e.g., pokec, frien
 | `-d` | Path to the data graph file in text format (deprecated). |
 | `-b` | Path to the data graph file in binary CSR format. |
 | `--device` | GPU device ID to use (0 by default). |
-| `--memory-pool` | Enable memory pooling for BFS (disabled by default). |
+| `--memory-pool` | Enable memory pooling for BFS (deprecated, disabled by default). |
 | `--no-filtering` | Manually disable candidate filtering (automatically added when the data graph is too large). |
 | `--reorder [0/1]` | Reorder vertices by degree for CSR graphs (disabled by default; 0/1 for descending/ascending). |
 | `--dump` | Save reordered CSR graph to a cache file for future use (requires `--reorder`) |

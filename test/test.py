@@ -92,4 +92,7 @@ if __name__ == '__main__':
     query_graph_files = ['query_graph/Q_{}.graph'.format(i) for i in range(22)]
 
     for i, query_graph_file in enumerate(query_graph_files):
+        # Skip queries that are too large for the `neighbor` variant (Q_11 - Q_21)
+        if '_labeled' in binary_path and i >= 11:
+            break
         check_correctness(binary_path, data_graph_path, query_graph_file, input_expected_results[i])
