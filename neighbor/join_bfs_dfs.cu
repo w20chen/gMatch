@@ -1351,8 +1351,13 @@ bfs_end:
     cudaGetDeviceProperties(&prop, current_device);
     int num_SMs = prop.multiProcessorCount;
 
+    bool unlabeled = true;
+#ifndef UNLABELED
+    unlabeled = false;
+#endif
+
     TIME_START();
-    if (!q.is_clique()) {
+    if (!q.is_clique() || !unlabeled) {
         cudaOccupancyMaxActiveBlocksPerMultiprocessor(&thread_block_num, dfs_kernel, threadsPerBlock, dynamic_shared_size);
         thread_block_num = thread_block_num * num_SMs;
         printf("#thread blocks per SM: %d, #SMs: %d, #threads per block: %d\n", thread_block_num / num_SMs, num_SMs, threadsPerBlock);

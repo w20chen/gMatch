@@ -19,9 +19,11 @@ main(int argc, char **argv) {
     prop.maxThreadsPerMultiProcessor / prop.warpSize,
     prop.multiProcessorCount * (prop.maxThreadsPerMultiProcessor / prop.warpSize));
 
+    bool unlabeled = true;
 #ifdef UNLABELED
     std::cout << "\033[41;37mThe data graph is unlabeled.\033[0m" << std::endl;
 #else
+    unlabeled = false;
     std::cout << "\033[41;37mThe data graph is labeled.\033[0m" << std::endl;
 #endif
 
@@ -82,7 +84,7 @@ main(int argc, char **argv) {
     }
 
 #ifdef SYMMETRY_BREAKING
-    if (is_csr && cmd_parser.check_cmd_option_exists("--reorder")) {
+    if (is_csr && cmd_parser.check_cmd_option_exists("--reorder") && unlabeled) {
         bool ascending = cmd_parser.get_cmd_option("--reorder") == "1";
         G.reorder_by_degree(ascending);
         if (cmd_parser.check_cmd_option_exists("--dump")) {
@@ -92,7 +94,7 @@ main(int argc, char **argv) {
         }
     }
 
-    if (is_csr && Q.is_clique() && !cmd_parser.check_cmd_option_exists("--no-orientation")) {
+    if (is_csr && Q.is_clique() && !cmd_parser.check_cmd_option_exists("--no-orientation") && unlabeled) {
         G.convert_to_degree_dag();
     }
 #endif
@@ -148,7 +150,18 @@ main(int argc, char **argv) {
     }
 
 #ifdef SYMMETRY_BREAKING
-    if (induced_flag) {
+    if (!unlabeled) {
+        // TODO: More optimizations are possible here.
+        if (alpha == 1) {
+            printf("# join_bfs_dfs (labeled)\n");
+            ret = join_bfs_dfs(Q, G, Q_GPU, G_GPU, CG, CG_GPU, no_memory_pool);
+        }
+        else {
+            printf("# join_bfs_dfs_sym (labeled)\n");
+            ret = alpha * join_bfs_dfs_sym(Q, G, Q_GPU, G_GPU, CG, CG_GPU, partial_order, no_memory_pool);
+        }
+    }
+    else if (induced_flag) {
         if (!G.is_dag) {
             printf("# join_induced\n");
             ret = alpha * join_induced(Q, G, Q_GPU, G_GPU, CG, CG_GPU, partial_order);

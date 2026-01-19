@@ -3,7 +3,9 @@
 // #define IDLE_CNT
 // #define BALANCE_CNT
 
-#define UNLABELED    // comment this out if the graph is labeled
+// #define UNLABELED
+// The UNLABELED flag is now determined when the program is compiled.
+// A labeled version and an unlabeled version are respectively compiled.
 
 #define MAX_DEGREE 34000    // MAX_DEGREE is only used when --induced is on (off by default)
 

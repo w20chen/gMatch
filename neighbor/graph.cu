@@ -417,7 +417,7 @@ Graph::parse_csr(const char* filename) {
     if (fread(vertex_label_.data(), sizeof(int), vcount_, file) != static_cast<size_t>(vcount_)) {
         fclose(file);
         delete[] h_offset;
-        fprintf(stderr, "Error reading offsets array\n");
+        fprintf(stderr, "Error reading labels array\n");
         exit(EXIT_FAILURE);
     }
 
