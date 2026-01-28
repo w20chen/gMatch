@@ -149,6 +149,21 @@ To reproduce the experimental results of gMatch in *Figure 9* of the paper, plea
 
 To reproduce the results of gMatch in *Table 4* of the paper, please use `neighbor/build/SubgraphMatching_unlabeled`. For example, ` ./neighbor/build/SubgraphMatching_unlabeled -b dataset/livejournal/label_1/livejournal.bin -q patterns/p2`.
 
+Our experimental results obtained using an RTX 4090 on the LiveJournal, Orkut, and LDBC datasets are presented below.
+
+| Pattern | LiveJournal | LiveJournal | Orkut | Orkut | LDBC | LDBC |
+|---------|------------:|------------:|------:|------:|-----:|-----:|
+|         | #Matches    | GPU Time (ms) | #Matches | GPU Time (ms) | #Matches | GPU Time (ms) |
+|P1	| 1,714,381,584	        |28	        |3,765,505,086	    |101	    |1,076,886,894	    |112     |
+|P2	| 238,404,768,456	    |131	    |77,326,707,288	    |195	    |2,961,127,128	    |207     |
+|P3	| 305,418,353,368	    |1,450	    |268,395,557,704	|5,129	    |55,932,016,868	    |4,317   |
+|P4	| 412,164,582,216	    |2,016	    |1,020,265,364,600	|21,464	    |1,436,179,086,848	|110,907 |
+|P5	| 85,748,180,406,532	|346,679	|21,361,787,058,228	|506,696	|2,356,280,683,116	|142,160 |
+|P6	| 75,367,343,121,332	|496,569	|10,416,429,418,264	|704,716	|297,027,626,080	|180,966 |
+|P7	| 72,331,185,812,144	|237,250	|7,093,759,171,560	|245,424	|247,429,007,424	|84,592  |
+|P8	| 63,673,129,086,480	|140,261	|3,544,851,291,228	|70,423	    |36,166,369,836	    |8,481   |
+|P9	| 56,091,580,340,880	|9,778	    |1,891,992,943,200	|1,526	    |5,062,485,360	    |317     |
+
 
 ## Comparison Setup
 ### EGSM

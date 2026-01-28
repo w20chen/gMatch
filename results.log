@@ -1,0 +1,2162 @@
+=== Processing livejournal ===
+Pattern p1:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p1.
+|V|=3 |E|=3 Unlabeled
+Max Degree=2
+Matching order: 0 1 2 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 
+N(1): 0 2 
+N(2): 0 1 
+|V|=4.84757e+06 |E|=4.28512e+07
+Data graph loaded from CSR format file dataset/livejournal/label_1/livejournal.bin
+|V|=4847571 |E|=42851237
+Max Degree=20333
+Min Degree=0
+Avg Degree=17.6795
+#labels=1
+Removing one layer of degree < 2 vertices...
+Removed 1057342 edges connected to degree < 2 vertices.
+Graph after removing degree < 2 vertices:
+|V|=4847571 |E|=41793895
+Max Degree=20329
+Min Degree=0
+Avg Degree=17.24
+Converted to DAG: |V|=4847571 |E|=41793895
+Graph loaded to host memory.
+Found 6 automorphisms of the query graph.
+0 -> 1
+1 -> 2
+Symmetry = 6
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 38780576 bytes (4847572 unsigned long longs) for nbr_offset @ 0x76a880000000
+--- Allocating 167175580 bytes (41793895 ints) for nbr_array @ 0x76a864000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 23485 MB, used 626 MB
+--- Allocating 12 bytes (3 unsigneds) for d_bknbrs_ @ 0x76a882600200
+# Transfer time of the data graph, time (ms): 75(host), 75(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 23463 MB, used 648 MB
+edge_list_bound: 334351160 bytes, free_memory: 24602804224 bytes
+# join_bfs_dfs
+# Generate the candidate sets for the first two vertices, time (ms): 25(host), 25(kernel)
+|C(0)| = 3745050
+Number of matches for the first edge: 41750472
+# Match the first edge, time (ms): 5(host), 5(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x76a87f800000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x76a882600400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x76a882600600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x76a882620600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x76a87c000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x76a87a000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x76a882630600
+--- Allocating 767 bytes (1 int) for d_temp_storage @ 0x76a882630800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x76a882630800
+Data preparation: 33 ms
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 23069 MB, used 1042 MB
+Conducting DFS from level 3 to 3
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x76a882630a00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x76a882650a00
+Shared memory usage: 9.38 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 28(host), 28(kernel)
+[41;37m
+Result: 1714381584
+[0m
+unique count: 285730264
+---
+Pattern p2:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p2.
+|V|=4 |E|=6 Unlabeled
+Max Degree=3
+Matching order: 0 1 2 3 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 3 
+N(1): 0 2 3 
+N(2): 0 1 3 
+N(3): 0 1 2 
+|V|=4.84757e+06 |E|=4.28512e+07
+Data graph loaded from CSR format file dataset/livejournal/label_1/livejournal.bin
+|V|=4847571 |E|=42851237
+Max Degree=20333
+Min Degree=0
+Avg Degree=17.6795
+#labels=1
+Removing one layer of degree < 3 vertices...
+Removed 2092557 edges connected to degree < 3 vertices.
+Graph after removing degree < 3 vertices:
+|V|=4847571 |E|=40758680
+Max Degree=19664
+Min Degree=0
+Avg Degree=16.82
+Converted to DAG: |V|=4847571 |E|=40758680
+Graph loaded to host memory.
+Found 24 automorphisms of the query graph.
+0 -> 1
+1 -> 2
+2 -> 3
+Symmetry = 24
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 38780576 bytes (4847572 unsigned long longs) for nbr_offset @ 0x741948000000
+--- Allocating 163034720 bytes (40758680 ints) for nbr_array @ 0x74192c000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 23489 MB, used 622 MB
+--- Allocating 16 bytes (4 unsigneds) for d_bknbrs_ @ 0x741935c00200
+# Transfer time of the data graph, time (ms): 35(host), 35(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 23467 MB, used 644 MB
+edge_list_bound: 326069440 bytes, free_memory: 24606998528 bytes
+# join_induced_orientation
+# Generate the candidate sets for the first two vertices, time (ms): 27(host), 27(kernel)
+|C(0)| = 3151878
+Number of matches for the first edge: 40606578
+# Match the first edge, time (ms): 5(host), 5(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x74192b600000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x741935c00400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x741935c00600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x741935c20600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x741944000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x741942000000
+--- Allocating 767 bytes (1 int) for d_temp_storage @ 0x741935c30800
+Data preparation: 34 ms
+Shared memory usage: 18.00 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+Allocating 2125.00 MB for warp buffers.
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 131(host), 131(kernel)
+[41;37m
+Result: 238404768456
+[0m
+unique count: 9933532019
+---
+Pattern p3:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p3.
+|V|=4 |E|=5 Unlabeled
+Max Degree=3
+Matching order: 0 1 2 3 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 3 
+N(1): 0 2 
+N(2): 0 1 3 
+N(3): 0 2 
+|V|=4.84757e+06 |E|=4.28512e+07
+Data graph loaded from CSR format file dataset/livejournal/label_1/livejournal.bin
+|V|=4847571 |E|=42851237
+Max Degree=20333
+Min Degree=0
+Avg Degree=17.6795
+#labels=1
+Removing one layer of degree < 2 vertices...
+Removed 1057342 edges connected to degree < 2 vertices.
+Graph after removing degree < 2 vertices:
+|V|=4847571 |E|=41793895
+Max Degree=20329
+Min Degree=0
+Avg Degree=17.24
+Graph loaded to host memory.
+Found 4 automorphisms of the query graph.
+0 -> 2
+1 -> 3
+Symmetry = 4
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 38780576 bytes (4847572 unsigned long longs) for nbr_offset @ 0x7a89b6000000
+--- Allocating 334351160 bytes (83587790 ints) for nbr_array @ 0x7a8978000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 23325 MB, used 786 MB
+--- Allocating 16 bytes (4 unsigneds) for d_bknbrs_ @ 0x7a89b8600200
+# Transfer time of the data graph, time (ms): 90(host), 90(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 23303 MB, used 808 MB
+edge_list_bound: 668702320 bytes, free_memory: 24435032064 bytes
+# join_bfs_dfs_sym
+# Generate the candidate sets for the first two vertices, time (ms): 39(host), 39(kernel)
+|C(0)| = 3198043
+Number of matches for the first edge: 82410274
+# Match the first edge, time (ms): 10(host), 10(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x7a8977600000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x7a89b8600400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x7a89b8600600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x7a89b8620600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x7a89b2000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x7a89b0000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x7a89b8630600
+--- Allocating 1023 bytes (1 int) for d_temp_storage @ 0x7a89b8630800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x7a89b8630800
+Data preparation: 51 ms
+--- Allocating 16 bytes (4 uint32_t) for d_partial_order @ 0x7a89b8630a00
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 22599 MB, used 1512 MB
+Conducting DFS from level 3 to 4
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x7a89b8630c00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x7a89b8650c00
+Shared memory usage: 18.25 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 1450(host), 1450(kernel)
+[41;37m
+Result: 305418353368
+[0m
+unique count: 76354588342
+---
+Pattern p4:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p4.
+|V|=4 |E|=4 Unlabeled
+Max Degree=2
+Query vertices are renamed according to the matching order.
+N(0): 1 2 
+N(1): 0 3 
+N(2): 0 3 
+N(3): 1 2 
+|V|=4.84757e+06 |E|=4.28512e+07
+Data graph loaded from CSR format file dataset/livejournal/label_1/livejournal.bin
+|V|=4847571 |E|=42851237
+Max Degree=20333
+Min Degree=0
+Avg Degree=17.6795
+#labels=1
+Removing one layer of degree < 2 vertices...
+Removed 1057342 edges connected to degree < 2 vertices.
+Graph after removing degree < 2 vertices:
+|V|=4847571 |E|=41793895
+Max Degree=20329
+Min Degree=0
+Avg Degree=17.24
+Graph loaded to host memory.
+Found 8 automorphisms of the query graph.
+0 -> 1
+0 -> 3
+1 -> 2
+Symmetry = 8
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 38780576 bytes (4847572 unsigned long longs) for nbr_offset @ 0x7fe01a000000
+--- Allocating 334351160 bytes (83587790 ints) for nbr_array @ 0x7fdfdc000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 23325 MB, used 786 MB
+--- Allocating 16 bytes (4 unsigneds) for d_bknbrs_ @ 0x7fe01c600200
+# Transfer time of the data graph, time (ms): 61(host), 61(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 23303 MB, used 808 MB
+edge_list_bound: 668702320 bytes, free_memory: 24435032064 bytes
+# join_bfs_dfs_sym
+# Generate the candidate sets for the first two vertices, time (ms): 38(host), 38(kernel)
+|C(0)| = 3745050
+Number of matches for the first edge: 41750472
+# Match the first edge, time (ms): 6(host), 6(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x7fe019800000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x7fe01c600400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x7fe01c600600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x7fe01c620600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x7fe016000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x7fe014000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x7fe01c630600
+--- Allocating 767 bytes (1 int) for d_temp_storage @ 0x7fe01c630800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x7fe01c630800
+Data preparation: 46 ms
+--- Allocating 16 bytes (4 uint32_t) for d_partial_order @ 0x7fe01c630a00
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 22909 MB, used 1202 MB
+Conducting DFS from level 3 to 4
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x7fe01c630c00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x7fe01c650c00
+Shared memory usage: 18.25 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 2016(host), 2016(kernel)
+[41;37m
+Result: 412164582216
+[0m
+unique count: 51520572777
+---
+Pattern p5:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p5.
+|V|=5 |E|=7 Unlabeled
+Max Degree=3
+Matching order: 1 3 4 2 0 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 4 
+N(1): 0 2 3 
+N(2): 0 1 3 
+N(3): 1 2 4 
+N(4): 0 3 
+|V|=4.84757e+06 |E|=4.28512e+07
+Data graph loaded from CSR format file dataset/livejournal/label_1/livejournal.bin
+|V|=4847571 |E|=42851237
+Max Degree=20333
+Min Degree=0
+Avg Degree=17.6795
+#labels=1
+Removing one layer of degree < 2 vertices...
+Removed 1057342 edges connected to degree < 2 vertices.
+Graph after removing degree < 2 vertices:
+|V|=4847571 |E|=41793895
+Max Degree=20329
+Min Degree=0
+Avg Degree=17.24
+Graph loaded to host memory.
+Found 4 automorphisms of the query graph.
+0 -> 3
+1 -> 2
+Symmetry = 4
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 38780576 bytes (4847572 unsigned long longs) for nbr_offset @ 0x755378000000
+--- Allocating 334351160 bytes (83587790 ints) for nbr_array @ 0x75533a000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 23325 MB, used 786 MB
+--- Allocating 20 bytes (5 unsigneds) for d_bknbrs_ @ 0x75537a600200
+# Transfer time of the data graph, time (ms): 85(host), 85(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 23303 MB, used 808 MB
+edge_list_bound: 668702320 bytes, free_memory: 24435032064 bytes
+# join_bfs_dfs_sym
+# Generate the candidate sets for the first two vertices, time (ms): 39(host), 39(kernel)
+|C(0)| = 3198043
+Number of matches for the first edge: 81379718
+# Match the first edge, time (ms): 10(host), 10(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x755338e00000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x75537a600400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x75537a600600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x75537a620600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x755374000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x755372000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x75537a630600
+--- Allocating 1023 bytes (1 int) for d_temp_storage @ 0x75537a630800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x75537a630800
+Data preparation: 51 ms
+--- Allocating 20 bytes (5 uint32_t) for d_partial_order @ 0x75537a630a00
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 22607 MB, used 1504 MB
+Conducting DFS from level 3 to 5
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x75537a630c00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x75537a650c00
+Shared memory usage: 27.12 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 346679(host), 346658(kernel)
+[41;37m
+Result: 85748180406532
+[0m
+unique count: 21437045101633
+---
+Pattern p6:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p6.
+|V|=5 |E|=8 Unlabeled
+Max Degree=4
+Matching order: 1 0 2 3 4 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 3 4 
+N(1): 0 2 
+N(2): 0 1 3 4 
+N(3): 0 2 4 
+N(4): 0 2 3 
+|V|=4.84757e+06 |E|=4.28512e+07
+Data graph loaded from CSR format file dataset/livejournal/label_1/livejournal.bin
+|V|=4847571 |E|=42851237
+Max Degree=20333
+Min Degree=0
+Avg Degree=17.6795
+#labels=1
+Removing one layer of degree < 2 vertices...
+Removed 1057342 edges connected to degree < 2 vertices.
+Graph after removing degree < 2 vertices:
+|V|=4847571 |E|=41793895
+Max Degree=20329
+Min Degree=0
+Avg Degree=17.24
+Graph loaded to host memory.
+Found 4 automorphisms of the query graph.
+0 -> 2
+3 -> 4
+Symmetry = 4
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 38780576 bytes (4847572 unsigned long longs) for nbr_offset @ 0x738c82000000
+--- Allocating 334351160 bytes (83587790 ints) for nbr_array @ 0x738c44000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 23325 MB, used 786 MB
+--- Allocating 20 bytes (5 unsigneds) for d_bknbrs_ @ 0x738c84600200
+# Transfer time of the data graph, time (ms): 94(host), 94(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 23303 MB, used 808 MB
+edge_list_bound: 668702320 bytes, free_memory: 24435032064 bytes
+# join_bfs_dfs_sym
+# Generate the candidate sets for the first two vertices, time (ms): 42(host), 42(kernel)
+|C(0)| = 2833623
+Number of matches for the first edge: 81319377
+# Match the first edge, time (ms): 12(host), 12(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x738c42e00000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x738c84600400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x738c84600600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x738c84620600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x738c7e000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x738c7c000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x738c84630600
+--- Allocating 1023 bytes (1 int) for d_temp_storage @ 0x738c84630800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x738c84630800
+Data preparation: 57 ms
+--- Allocating 20 bytes (5 uint32_t) for d_partial_order @ 0x738c84630a00
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 22607 MB, used 1504 MB
+Conducting DFS from level 3 to 5
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x738c84630c00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x738c84650c00
+Shared memory usage: 27.12 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 496569(host), 496539(kernel)
+[41;37m
+Result: 75367343121332
+[0m
+unique count: 18841835780333
+---
+Pattern p7:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p7.
+|V|=5 |E|=8 Unlabeled
+Max Degree=4
+Matching order: 0 1 2 3 4 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 3 4 
+N(1): 0 2 3 
+N(2): 0 1 4 
+N(3): 0 1 4 
+N(4): 0 2 3 
+|V|=4.84757e+06 |E|=4.28512e+07
+Data graph loaded from CSR format file dataset/livejournal/label_1/livejournal.bin
+|V|=4847571 |E|=42851237
+Max Degree=20333
+Min Degree=0
+Avg Degree=17.6795
+#labels=1
+Removing one layer of degree < 3 vertices...
+Removed 2092557 edges connected to degree < 3 vertices.
+Graph after removing degree < 3 vertices:
+|V|=4847571 |E|=40758680
+Max Degree=19664
+Min Degree=0
+Avg Degree=16.82
+Graph loaded to host memory.
+Found 8 automorphisms of the query graph.
+1 -> 2
+1 -> 4
+2 -> 3
+Symmetry = 8
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 38780576 bytes (4847572 unsigned long longs) for nbr_offset @ 0x76c2c6000000
+--- Allocating 326069440 bytes (81517360 ints) for nbr_array @ 0x76c286000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 23333 MB, used 778 MB
+--- Allocating 20 bytes (5 unsigneds) for d_bknbrs_ @ 0x76c299800200
+# Transfer time of the data graph, time (ms): 60(host), 60(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 23311 MB, used 800 MB
+edge_list_bound: 652138880 bytes, free_memory: 24443420672 bytes
+# join_bfs_dfs_sym
+# Generate the candidate sets for the first two vertices, time (ms): 41(host), 41(kernel)
+|C(0)| = 2794790
+Number of matches for the first edge: 80152628
+# Match the first edge, time (ms): 10(host), 10(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x76c284400000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x76c299800400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x76c299800600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x76c299820600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x76c2c2000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x76c2c0000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x76c299830600
+--- Allocating 1023 bytes (1 int) for d_temp_storage @ 0x76c299830800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x76c299830800
+Data preparation: 52 ms
+--- Allocating 20 bytes (5 uint32_t) for d_partial_order @ 0x76c299830a00
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 22625 MB, used 1486 MB
+Conducting DFS from level 3 to 5
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x76c299830c00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x76c299850c00
+Shared memory usage: 27.12 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 237250(host), 237236(kernel)
+[41;37m
+Result: 72331185812144
+[0m
+unique count: 9041398226518
+---
+Pattern p8:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p8.
+|V|=5 |E|=9 Unlabeled
+Max Degree=4
+Matching order: 0 1 3 4 2 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 3 4 
+N(1): 0 2 3 
+N(2): 0 1 3 4 
+N(3): 0 1 2 4 
+N(4): 0 2 3 
+|V|=4.84757e+06 |E|=4.28512e+07
+Data graph loaded from CSR format file dataset/livejournal/label_1/livejournal.bin
+|V|=4847571 |E|=42851237
+Max Degree=20333
+Min Degree=0
+Avg Degree=17.6795
+#labels=1
+Removing one layer of degree < 3 vertices...
+Removed 2092557 edges connected to degree < 3 vertices.
+Graph after removing degree < 3 vertices:
+|V|=4847571 |E|=40758680
+Max Degree=19664
+Min Degree=0
+Avg Degree=16.82
+Graph loaded to host memory.
+Found 12 automorphisms of the query graph.
+0 -> 2
+1 -> 4
+2 -> 3
+Symmetry = 12
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 38780576 bytes (4847572 unsigned long longs) for nbr_offset @ 0x7b9fd6000000
+--- Allocating 326069440 bytes (81517360 ints) for nbr_array @ 0x7b9f96000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 23333 MB, used 778 MB
+--- Allocating 20 bytes (5 unsigneds) for d_bknbrs_ @ 0x7b9fa9800200
+# Transfer time of the data graph, time (ms): 59(host), 59(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 23311 MB, used 800 MB
+edge_list_bound: 652138880 bytes, free_memory: 24443420672 bytes
+# join_bfs_dfs_sym
+# Generate the candidate sets for the first two vertices, time (ms): 39(host), 39(kernel)
+|C(0)| = 2794790
+Number of matches for the first edge: 80152628
+# Match the first edge, time (ms): 9(host), 9(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x7b9f94400000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x7b9fa9800400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x7b9fa9800600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x7b9fa9820600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x7b9fd2000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x7b9fd0000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x7b9fa9830600
+--- Allocating 1023 bytes (1 int) for d_temp_storage @ 0x7b9fa9830800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x7b9fa9830800
+Data preparation: 50 ms
+--- Allocating 20 bytes (5 uint32_t) for d_partial_order @ 0x7b9fa9830a00
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 22625 MB, used 1486 MB
+Conducting DFS from level 3 to 5
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x7b9fa9830c00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x7b9fa9850c00
+Shared memory usage: 27.12 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 140261(host), 140252(kernel)
+[41;37m
+Result: 63673129086480
+[0m
+unique count: 5306094090540
+---
+Pattern p9:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p9.
+|V|=5 |E|=10 Unlabeled
+Max Degree=4
+Matching order: 0 1 2 3 4 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 3 4 
+N(1): 0 2 3 4 
+N(2): 0 1 3 4 
+N(3): 0 1 2 4 
+N(4): 0 1 2 3 
+|V|=4.84757e+06 |E|=4.28512e+07
+Data graph loaded from CSR format file dataset/livejournal/label_1/livejournal.bin
+|V|=4847571 |E|=42851237
+Max Degree=20333
+Min Degree=0
+Avg Degree=17.6795
+#labels=1
+Removing one layer of degree < 4 vertices...
+Removed 3090892 edges connected to degree < 4 vertices.
+Graph after removing degree < 4 vertices:
+|V|=4847571 |E|=39760345
+Max Degree=18950
+Min Degree=0
+Avg Degree=16.40
+Converted to DAG: |V|=4847571 |E|=39760345
+Graph loaded to host memory.
+Found 120 automorphisms of the query graph.
+0 -> 1
+1 -> 2
+2 -> 3
+3 -> 4
+Symmetry = 120
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 38780576 bytes (4847572 unsigned long longs) for nbr_offset @ 0x775208000000
+--- Allocating 159041380 bytes (39760345 ints) for nbr_array @ 0x7751ec000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 23493 MB, used 618 MB
+--- Allocating 20 bytes (5 unsigneds) for d_bknbrs_ @ 0x7751f5800200
+# Transfer time of the data graph, time (ms): 35(host), 35(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 23471 MB, used 640 MB
+edge_list_bound: 318082760 bytes, free_memory: 24611192832 bytes
+# join_induced_orientation
+# Generate the candidate sets for the first two vertices, time (ms): 28(host), 28(kernel)
+|C(0)| = 2753274
+Number of matches for the first edge: 39464179
+# Match the first edge, time (ms): 5(host), 5(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x7751eae00000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x7751f5800400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x7751f5800600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x7751f5820600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x775204000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x775202000000
+--- Allocating 767 bytes (1 int) for d_temp_storage @ 0x7751f5830800
+Data preparation: 34 ms
+Shared memory usage: 26.88 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+Allocating 2125.00 MB for warp buffers.
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 9778(host), 9777(kernel)
+[41;37m
+Result: 56091580340880
+[0m
+unique count: 467429836174
+---
+=== Processing orkut ===
+Pattern p1:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p1.
+|V|=3 |E|=3 Unlabeled
+Max Degree=2
+Matching order: 0 1 2 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 
+N(1): 0 2 
+N(2): 0 1 
+|V|=3.07244e+06 |E|=1.17185e+08
+Data graph loaded from CSR format file dataset/orkut/label_1/orkut.bin
+|V|=3072441 |E|=117185083
+Max Degree=33313
+Min Degree=1
+Avg Degree=76.2814
+#labels=1
+Removing one layer of degree < 2 vertices...
+Removed 67767 edges connected to degree < 2 vertices.
+Graph after removing degree < 2 vertices:
+|V|=3072441 |E|=117117316
+Max Degree=33275
+Min Degree=0
+Avg Degree=76.24
+Converted to DAG: |V|=3072441 |E|=117117316
+Graph loaded to host memory.
+Found 6 automorphisms of the query graph.
+0 -> 1
+1 -> 2
+Symmetry = 6
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 24579536 bytes (3072442 unsigned long longs) for nbr_offset @ 0x762e62000000
+--- Allocating 468469264 bytes (117117316 ints) for nbr_array @ 0x762e0c000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 23211 MB, used 900 MB
+--- Allocating 12 bytes (3 unsigneds) for d_bknbrs_ @ 0x762e63800200
+# Transfer time of the data graph, time (ms): 88(host), 87(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 23197 MB, used 914 MB
+edge_list_bound: 936938528 bytes, free_memory: 24323883008 bytes
+# join_bfs_dfs
+# Generate the candidate sets for the first two vertices, time (ms): 8(host), 8(kernel)
+|C(0)| = 3004647
+Number of matches for the first edge: 117117289
+# Match the first edge, time (ms): 10(host), 10(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x762e60000000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x762e63800400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x762e63800600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x762e63820600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x762e5e000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x762e5c000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x762e63830600
+--- Allocating 1023 bytes (1 int) for d_temp_storage @ 0x762e63830800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x762e63830800
+Data preparation: 21 ms
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 22229 MB, used 1882 MB
+Conducting DFS from level 3 to 3
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x762e63830a00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x762e63850a00
+Shared memory usage: 9.38 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 101(host), 101(kernel)
+[41;37m
+Result: 3765505086
+[0m
+unique count: 627584181
+---
+Pattern p2:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p2.
+|V|=4 |E|=6 Unlabeled
+Max Degree=3
+Matching order: 0 1 2 3 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 3 
+N(1): 0 2 3 
+N(2): 0 1 3 
+N(3): 0 1 2 
+|V|=3.07244e+06 |E|=1.17185e+08
+Data graph loaded from CSR format file dataset/orkut/label_1/orkut.bin
+|V|=3072441 |E|=117185083
+Max Degree=33313
+Min Degree=1
+Avg Degree=76.2814
+#labels=1
+Removing one layer of degree < 3 vertices...
+Removed 153912 edges connected to degree < 3 vertices.
+Graph after removing degree < 3 vertices:
+|V|=3072441 |E|=117031171
+Max Degree=33236
+Min Degree=0
+Avg Degree=76.18
+Converted to DAG: |V|=3072441 |E|=117031171
+Graph loaded to host memory.
+Found 24 automorphisms of the query graph.
+0 -> 1
+1 -> 2
+2 -> 3
+Symmetry = 24
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 24579536 bytes (3072442 unsigned long longs) for nbr_offset @ 0x704f0c000000
+--- Allocating 468124684 bytes (117031171 ints) for nbr_array @ 0x704eba000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 23211 MB, used 900 MB
+--- Allocating 16 bytes (4 unsigneds) for d_bknbrs_ @ 0x704f0d800200
+# Transfer time of the data graph, time (ms): 89(host), 89(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 23197 MB, used 914 MB
+edge_list_bound: 936249368 bytes, free_memory: 24323883008 bytes
+# join_induced_orientation
+# Generate the candidate sets for the first two vertices, time (ms): 9(host), 9(kernel)
+|C(0)| = 2960848
+Number of matches for the first edge: 117030055
+# Match the first edge, time (ms): 10(host), 10(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x704f0a000000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x704f0d800400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x704f0d800600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x704f0d820600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x704f08000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x704f06000000
+--- Allocating 1023 bytes (1 int) for d_temp_storage @ 0x704f0d830800
+Data preparation: 21 ms
+Shared memory usage: 18.00 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+Allocating 2125.00 MB for warp buffers.
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 195(host), 195(kernel)
+[41;37m
+Result: 77326707288
+[0m
+unique count: 3221946137
+---
+Pattern p3:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p3.
+|V|=4 |E|=5 Unlabeled
+Max Degree=3
+Matching order: 0 1 2 3 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 3 
+N(1): 0 2 
+N(2): 0 1 3 
+N(3): 0 2 
+|V|=3.07244e+06 |E|=1.17185e+08
+Data graph loaded from CSR format file dataset/orkut/label_1/orkut.bin
+|V|=3072441 |E|=117185083
+Max Degree=33313
+Min Degree=1
+Avg Degree=76.2814
+#labels=1
+Removing one layer of degree < 2 vertices...
+Removed 67767 edges connected to degree < 2 vertices.
+Graph after removing degree < 2 vertices:
+|V|=3072441 |E|=117117316
+Max Degree=33275
+Min Degree=0
+Avg Degree=76.24
+Graph loaded to host memory.
+Found 4 automorphisms of the query graph.
+0 -> 2
+1 -> 3
+Symmetry = 4
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 24579536 bytes (3072442 unsigned long longs) for nbr_offset @ 0x73e4ac000000
+--- Allocating 936938528 bytes (234234632 ints) for nbr_array @ 0x73e404000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 22765 MB, used 1346 MB
+--- Allocating 16 bytes (4 unsigneds) for d_bknbrs_ @ 0x73e43be00200
+# Transfer time of the data graph, time (ms): 206(host), 206(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 22751 MB, used 1360 MB
+edge_list_bound: 1873877056 bytes, free_memory: 23856218112 bytes
+# join_bfs_dfs_sym
+# Generate the candidate sets for the first two vertices, time (ms): 20(host), 20(kernel)
+|C(0)| = 2961369
+Number of matches for the first edge: 234148022
+# Match the first edge, time (ms): 21(host), 21(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x73e4aa000000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x73e43be00400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x73e43be00600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x73e43be20600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x73e4a8000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x73e4a6000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x73e43be30600
+--- Allocating 1535 bytes (1 int) for d_temp_storage @ 0x73e43be30800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x73e43be30800
+Data preparation: 44 ms
+--- Allocating 16 bytes (4 uint32_t) for d_partial_order @ 0x73e43be30a00
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 20889 MB, used 3222 MB
+Conducting DFS from level 3 to 4
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x73e43be30c00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x73e43be50c00
+Shared memory usage: 18.25 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 5129(host), 5129(kernel)
+[41;37m
+Result: 268395557704
+[0m
+unique count: 67098889426
+---
+Pattern p4:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p4.
+|V|=4 |E|=4 Unlabeled
+Max Degree=2
+Query vertices are renamed according to the matching order.
+N(0): 1 2 
+N(1): 0 3 
+N(2): 0 3 
+N(3): 1 2 
+|V|=3.07244e+06 |E|=1.17185e+08
+Data graph loaded from CSR format file dataset/orkut/label_1/orkut.bin
+|V|=3072441 |E|=117185083
+Max Degree=33313
+Min Degree=1
+Avg Degree=76.2814
+#labels=1
+Removing one layer of degree < 2 vertices...
+Removed 67767 edges connected to degree < 2 vertices.
+Graph after removing degree < 2 vertices:
+|V|=3072441 |E|=117117316
+Max Degree=33275
+Min Degree=0
+Avg Degree=76.24
+Graph loaded to host memory.
+Found 8 automorphisms of the query graph.
+0 -> 1
+0 -> 3
+1 -> 2
+Symmetry = 8
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 24579536 bytes (3072442 unsigned long longs) for nbr_offset @ 0x7d4298000000
+--- Allocating 936938528 bytes (234234632 ints) for nbr_array @ 0x7d41f0000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 22765 MB, used 1346 MB
+--- Allocating 16 bytes (4 unsigneds) for d_bknbrs_ @ 0x7d4227e00200
+# Transfer time of the data graph, time (ms): 153(host), 153(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 22751 MB, used 1360 MB
+edge_list_bound: 1873877056 bytes, free_memory: 23856218112 bytes
+# join_bfs_dfs_sym
+# Generate the candidate sets for the first two vertices, time (ms): 20(host), 20(kernel)
+|C(0)| = 3004647
+Number of matches for the first edge: 117117289
+# Match the first edge, time (ms): 11(host), 11(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x7d4296000000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x7d4227e00400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x7d4227e00600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x7d4227e20600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x7d4294000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x7d4292000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x7d4227e30600
+--- Allocating 1023 bytes (1 int) for d_temp_storage @ 0x7d4227e30800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x7d4227e30800
+Data preparation: 34 ms
+--- Allocating 16 bytes (4 uint32_t) for d_partial_order @ 0x7d4227e30a00
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 21783 MB, used 2328 MB
+Conducting DFS from level 3 to 4
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x7d4227e30c00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x7d4227e50c00
+Shared memory usage: 18.25 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 21464(host), 21462(kernel)
+[41;37m
+Result: 1020265364600
+[0m
+unique count: 127533170575
+---
+Pattern p5:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p5.
+|V|=5 |E|=7 Unlabeled
+Max Degree=3
+Matching order: 1 3 4 2 0 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 4 
+N(1): 0 2 3 
+N(2): 0 1 3 
+N(3): 1 2 4 
+N(4): 0 3 
+|V|=3.07244e+06 |E|=1.17185e+08
+Data graph loaded from CSR format file dataset/orkut/label_1/orkut.bin
+|V|=3072441 |E|=117185083
+Max Degree=33313
+Min Degree=1
+Avg Degree=76.2814
+#labels=1
+Removing one layer of degree < 2 vertices...
+Removed 67767 edges connected to degree < 2 vertices.
+Graph after removing degree < 2 vertices:
+|V|=3072441 |E|=117117316
+Max Degree=33275
+Min Degree=0
+Avg Degree=76.24
+Graph loaded to host memory.
+Found 4 automorphisms of the query graph.
+0 -> 3
+1 -> 2
+Symmetry = 4
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 24579536 bytes (3072442 unsigned long longs) for nbr_offset @ 0x74efc0000000
+--- Allocating 936938528 bytes (234234632 ints) for nbr_array @ 0x74ef14000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 22765 MB, used 1346 MB
+--- Allocating 20 bytes (5 unsigneds) for d_bknbrs_ @ 0x74ef4be00200
+# Transfer time of the data graph, time (ms): 149(host), 149(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 22751 MB, used 1360 MB
+edge_list_bound: 1873877056 bytes, free_memory: 23856218112 bytes
+# join_bfs_dfs_sym
+# Generate the candidate sets for the first two vertices, time (ms): 20(host), 20(kernel)
+|C(0)| = 2961369
+Number of matches for the first edge: 234062158
+# Match the first edge, time (ms): 21(host), 21(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x74efbe000000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x74ef4be00400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x74ef4be00600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x74ef4be20600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x74efbc000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x74efba000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x74ef4be30600
+--- Allocating 1535 bytes (1 int) for d_temp_storage @ 0x74ef4be30800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x74ef4be30800
+Data preparation: 43 ms
+--- Allocating 20 bytes (5 uint32_t) for d_partial_order @ 0x74ef4be30a00
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 20891 MB, used 3220 MB
+Conducting DFS from level 3 to 5
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x74ef4be30c00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x74ef4be50c00
+Shared memory usage: 27.12 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 506696(host), 506666(kernel)
+[41;37m
+Result: 21361787058228
+[0m
+unique count: 5340446764557
+---
+Pattern p6:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p6.
+|V|=5 |E|=8 Unlabeled
+Max Degree=4
+Matching order: 1 0 2 3 4 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 3 4 
+N(1): 0 2 
+N(2): 0 1 3 4 
+N(3): 0 2 4 
+N(4): 0 2 3 
+|V|=3.07244e+06 |E|=1.17185e+08
+Data graph loaded from CSR format file dataset/orkut/label_1/orkut.bin
+|V|=3072441 |E|=117185083
+Max Degree=33313
+Min Degree=1
+Avg Degree=76.2814
+#labels=1
+Removing one layer of degree < 2 vertices...
+Removed 67767 edges connected to degree < 2 vertices.
+Graph after removing degree < 2 vertices:
+|V|=3072441 |E|=117117316
+Max Degree=33275
+Min Degree=0
+Avg Degree=76.24
+Graph loaded to host memory.
+Found 4 automorphisms of the query graph.
+0 -> 2
+3 -> 4
+Symmetry = 4
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 24579536 bytes (3072442 unsigned long longs) for nbr_offset @ 0x790db4000000
+--- Allocating 936938528 bytes (234234632 ints) for nbr_array @ 0x790d08000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 22765 MB, used 1346 MB
+--- Allocating 20 bytes (5 unsigneds) for d_bknbrs_ @ 0x790d3fe00200
+# Transfer time of the data graph, time (ms): 201(host), 201(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 22751 MB, used 1360 MB
+edge_list_bound: 1873877056 bytes, free_memory: 23856218112 bytes
+# join_bfs_dfs_sym
+# Generate the candidate sets for the first two vertices, time (ms): 21(host), 21(kernel)
+|C(0)| = 2922996
+Number of matches for the first edge: 234032903
+# Match the first edge, time (ms): 21(host), 21(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x790db2000000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x790d3fe00400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x790d3fe00600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x790d3fe20600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x790db0000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x790dae000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x790d3fe30600
+--- Allocating 1535 bytes (1 int) for d_temp_storage @ 0x790d3fe30800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x790d3fe30800
+Data preparation: 45 ms
+--- Allocating 20 bytes (5 uint32_t) for d_partial_order @ 0x790d3fe30a00
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 20891 MB, used 3220 MB
+Conducting DFS from level 3 to 5
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x790d3fe30c00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x790d3fe50c00
+Shared memory usage: 27.12 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 704716(host), 704675(kernel)
+[41;37m
+Result: 10416429418264
+[0m
+unique count: 2604107354566
+---
+Pattern p7:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p7.
+|V|=5 |E|=8 Unlabeled
+Max Degree=4
+Matching order: 0 1 2 3 4 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 3 4 
+N(1): 0 2 3 
+N(2): 0 1 4 
+N(3): 0 1 4 
+N(4): 0 2 3 
+|V|=3.07244e+06 |E|=1.17185e+08
+Data graph loaded from CSR format file dataset/orkut/label_1/orkut.bin
+|V|=3072441 |E|=117185083
+Max Degree=33313
+Min Degree=1
+Avg Degree=76.2814
+#labels=1
+Removing one layer of degree < 3 vertices...
+Removed 153912 edges connected to degree < 3 vertices.
+Graph after removing degree < 3 vertices:
+|V|=3072441 |E|=117031171
+Max Degree=33236
+Min Degree=0
+Avg Degree=76.18
+Graph loaded to host memory.
+Found 8 automorphisms of the query graph.
+1 -> 2
+1 -> 4
+2 -> 3
+Symmetry = 8
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 24579536 bytes (3072442 unsigned long longs) for nbr_offset @ 0x7dc95e000000
+--- Allocating 936249368 bytes (234062342 ints) for nbr_array @ 0x7dc8b4000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 22765 MB, used 1346 MB
+--- Allocating 20 bytes (5 unsigneds) for d_bknbrs_ @ 0x7dc8ebe00200
+# Transfer time of the data graph, time (ms): 156(host), 156(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 22751 MB, used 1360 MB
+edge_list_bound: 1872498736 bytes, free_memory: 23856218112 bytes
+# join_bfs_dfs_sym
+# Generate the candidate sets for the first two vertices, time (ms): 20(host), 20(kernel)
+|C(0)| = 2922493
+Number of matches for the first edge: 233945076
+# Match the first edge, time (ms): 21(host), 21(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x7dc95c000000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x7dc8ebe00400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x7dc8ebe00600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x7dc8ebe20600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x7dc95a000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x7dc958000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x7dc8ebe30600
+--- Allocating 1535 bytes (1 int) for d_temp_storage @ 0x7dc8ebe30800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x7dc8ebe30800
+Data preparation: 44 ms
+--- Allocating 20 bytes (5 uint32_t) for d_partial_order @ 0x7dc8ebe30a00
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 20891 MB, used 3220 MB
+Conducting DFS from level 3 to 5
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x7dc8ebe30c00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x7dc8ebe50c00
+Shared memory usage: 27.12 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 245424(host), 245410(kernel)
+[41;37m
+Result: 7093759171560
+[0m
+unique count: 886719896445
+---
+Pattern p8:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p8.
+|V|=5 |E|=9 Unlabeled
+Max Degree=4
+Matching order: 0 1 3 4 2 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 3 4 
+N(1): 0 2 3 
+N(2): 0 1 3 4 
+N(3): 0 1 2 4 
+N(4): 0 2 3 
+|V|=3.07244e+06 |E|=1.17185e+08
+Data graph loaded from CSR format file dataset/orkut/label_1/orkut.bin
+|V|=3072441 |E|=117185083
+Max Degree=33313
+Min Degree=1
+Avg Degree=76.2814
+#labels=1
+Removing one layer of degree < 3 vertices...
+Removed 153912 edges connected to degree < 3 vertices.
+Graph after removing degree < 3 vertices:
+|V|=3072441 |E|=117031171
+Max Degree=33236
+Min Degree=0
+Avg Degree=76.18
+Graph loaded to host memory.
+Found 12 automorphisms of the query graph.
+0 -> 2
+1 -> 4
+2 -> 3
+Symmetry = 12
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 24579536 bytes (3072442 unsigned long longs) for nbr_offset @ 0x7b62b8000000
+--- Allocating 936249368 bytes (234062342 ints) for nbr_array @ 0x7b6210000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 22765 MB, used 1346 MB
+--- Allocating 20 bytes (5 unsigneds) for d_bknbrs_ @ 0x7b6247e00200
+# Transfer time of the data graph, time (ms): 152(host), 152(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 22751 MB, used 1360 MB
+edge_list_bound: 1872498736 bytes, free_memory: 23856218112 bytes
+# join_bfs_dfs_sym
+# Generate the candidate sets for the first two vertices, time (ms): 20(host), 20(kernel)
+|C(0)| = 2922493
+Number of matches for the first edge: 233945076
+# Match the first edge, time (ms): 21(host), 21(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x7b62b6000000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x7b6247e00400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x7b6247e00600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x7b6247e20600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x7b62b4000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x7b62b2000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x7b6247e30600
+--- Allocating 1535 bytes (1 int) for d_temp_storage @ 0x7b6247e30800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x7b6247e30800
+Data preparation: 44 ms
+--- Allocating 20 bytes (5 uint32_t) for d_partial_order @ 0x7b6247e30a00
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 20891 MB, used 3220 MB
+Conducting DFS from level 3 to 5
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x7b6247e30c00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x7b6247e50c00
+Shared memory usage: 27.12 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 70423(host), 70418(kernel)
+[41;37m
+Result: 3544851291228
+[0m
+unique count: 295404274269
+---
+Pattern p9:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p9.
+|V|=5 |E|=10 Unlabeled
+Max Degree=4
+Matching order: 0 1 2 3 4 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 3 4 
+N(1): 0 2 3 4 
+N(2): 0 1 3 4 
+N(3): 0 1 2 4 
+N(4): 0 1 2 3 
+|V|=3.07244e+06 |E|=1.17185e+08
+Data graph loaded from CSR format file dataset/orkut/label_1/orkut.bin
+|V|=3072441 |E|=117185083
+Max Degree=33313
+Min Degree=1
+Avg Degree=76.2814
+#labels=1
+Removing one layer of degree < 4 vertices...
+Removed 268048 edges connected to degree < 4 vertices.
+Graph after removing degree < 4 vertices:
+|V|=3072441 |E|=116917035
+Max Degree=33178
+Min Degree=0
+Avg Degree=76.11
+Converted to DAG: |V|=3072441 |E|=116917035
+Graph loaded to host memory.
+Found 120 automorphisms of the query graph.
+0 -> 1
+1 -> 2
+2 -> 3
+3 -> 4
+Symmetry = 120
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 24579536 bytes (3072442 unsigned long longs) for nbr_offset @ 0x7801e0000000
+--- Allocating 467668140 bytes (116917035 ints) for nbr_array @ 0x78018c000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 23211 MB, used 900 MB
+--- Allocating 20 bytes (5 unsigneds) for d_bknbrs_ @ 0x7801e1800200
+# Transfer time of the data graph, time (ms): 91(host), 91(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 23197 MB, used 914 MB
+edge_list_bound: 935336280 bytes, free_memory: 24323883008 bytes
+# join_induced_orientation
+# Generate the candidate sets for the first two vertices, time (ms): 9(host), 9(kernel)
+|C(0)| = 2921723
+Number of matches for the first edge: 116913222
+# Match the first edge, time (ms): 10(host), 10(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x7801de000000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x7801e1800400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x7801e1800600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x7801e1820600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x7801dc000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x7801da000000
+--- Allocating 1023 bytes (1 int) for d_temp_storage @ 0x7801e1830800
+Data preparation: 21 ms
+Shared memory usage: 26.88 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+Allocating 2125.00 MB for warp buffers.
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 1526(host), 1526(kernel)
+[41;37m
+Result: 1891992943200
+[0m
+unique count: 15766607860
+---
+=== Processing ldbc_sf10 ===
+Pattern p1:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p1.
+|V|=3 |E|=3 Unlabeled
+Max Degree=2
+Matching order: 0 1 2 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 
+N(1): 0 2 
+N(2): 0 1 
+|V|=2.99827e+07 |E|=1.7586e+08
+Data graph loaded from CSR format file ldbc/ldbc_sf10.bin
+|V|=29982730 |E|=175860387
+Max Degree=4282595
+Min Degree=1
+Avg Degree=11.7308
+#labels=1
+Removing one layer of degree < 2 vertices...
+Removed 4640 edges connected to degree < 2 vertices.
+Graph after removing degree < 2 vertices:
+|V|=29982730 |E|=175855747
+Max Degree=4282595
+Min Degree=0
+Avg Degree=11.73
+Converted to DAG: |V|=29982730 |E|=175855747
+Graph loaded to host memory.
+Found 6 automorphisms of the query graph.
+0 -> 1
+1 -> 2
+Symmetry = 6
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 239861848 bytes (29982731 unsigned long longs) for nbr_offset @ 0x788048000000
+--- Allocating 703422988 bytes (175855747 ints) for nbr_array @ 0x78801e000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 22781 MB, used 1330 MB
+--- Allocating 12 bytes (3 unsigneds) for d_bknbrs_ @ 0x788056600200
+# Transfer time of the data graph, time (ms): 2597(host), 2588(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 22663 MB, used 1448 MB
+edge_list_bound: 1406845976 bytes, free_memory: 23763943424 bytes
+# join_bfs_dfs
+# Generate the candidate sets for the first two vertices, time (ms): 113(host), 113(kernel)
+|C(0)| = 29978086
+Number of matches for the first edge: 175855743
+# Match the first edge, time (ms): 29(host), 29(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x788015600000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x788056600400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x788056600600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x788056620600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x78800e000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x788010000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x788056630600
+--- Allocating 1279 bytes (1 int) for d_temp_storage @ 0x788056630800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x788056630800
+Data preparation: 147 ms
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 21247 MB, used 2864 MB
+Conducting DFS from level 3 to 3
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x788056630a00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x788056650a00
+Shared memory usage: 9.38 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 112(host), 112(kernel)
+[41;37m
+Result: 1076886894
+[0m
+unique count: 179481149
+---
+Pattern p2:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p2.
+|V|=4 |E|=6 Unlabeled
+Max Degree=3
+Matching order: 0 1 2 3 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 3 
+N(1): 0 2 3 
+N(2): 0 1 3 
+N(3): 0 1 2 
+|V|=2.99827e+07 |E|=1.7586e+08
+Data graph loaded from CSR format file ldbc/ldbc_sf10.bin
+|V|=29982730 |E|=175860387
+Max Degree=4282595
+Min Degree=1
+Avg Degree=11.7308
+#labels=1
+Removing one layer of degree < 3 vertices...
+Removed 15784 edges connected to degree < 3 vertices.
+Graph after removing degree < 3 vertices:
+|V|=29982730 |E|=175844603
+Max Degree=4282595
+Min Degree=0
+Avg Degree=11.73
+Converted to DAG: |V|=29982730 |E|=175844603
+Graph loaded to host memory.
+Found 24 automorphisms of the query graph.
+0 -> 1
+1 -> 2
+2 -> 3
+Symmetry = 24
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 239861848 bytes (29982731 unsigned long longs) for nbr_offset @ 0x7f3678000000
+--- Allocating 703378412 bytes (175844603 ints) for nbr_array @ 0x7f364e000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 22781 MB, used 1330 MB
+--- Allocating 16 bytes (4 unsigneds) for d_bknbrs_ @ 0x7f3686600200
+# Transfer time of the data graph, time (ms): 2746(host), 2737(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 22663 MB, used 1448 MB
+edge_list_bound: 1406756824 bytes, free_memory: 23763943424 bytes
+# join_bfs_dfs
+# Generate the candidate sets for the first two vertices, time (ms): 95(host), 95(kernel)
+|C(0)| = 29970020
+Number of matches for the first edge: 175839613
+# Match the first edge, time (ms): 28(host), 28(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x7f3645600000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x7f3686600400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x7f3686600600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x7f3686620600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x7f363e000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x7f3640000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x7f3686630600
+--- Allocating 1279 bytes (1 int) for d_temp_storage @ 0x7f3686630800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x7f3686630800
+Data preparation: 128 ms
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 21247 MB, used 2864 MB
+Conducting DFS from level 3 to 4
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x7f3686630a00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x7f3686650a00
+Shared memory usage: 18.25 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 207(host), 207(kernel)
+[41;37m
+Result: 2961127128
+[0m
+unique count: 123380297
+---
+Pattern p3:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p3.
+|V|=4 |E|=5 Unlabeled
+Max Degree=3
+Matching order: 0 1 2 3 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 3 
+N(1): 0 2 
+N(2): 0 1 3 
+N(3): 0 2 
+|V|=2.99827e+07 |E|=1.7586e+08
+Data graph loaded from CSR format file ldbc/ldbc_sf10.bin
+|V|=29982730 |E|=175860387
+Max Degree=4282595
+Min Degree=1
+Avg Degree=11.7308
+#labels=1
+Removing one layer of degree < 2 vertices...
+Removed 4640 edges connected to degree < 2 vertices.
+Graph after removing degree < 2 vertices:
+|V|=29982730 |E|=175855747
+Max Degree=4282595
+Min Degree=0
+Avg Degree=11.73
+Graph loaded to host memory.
+Found 4 automorphisms of the query graph.
+0 -> 2
+1 -> 3
+Symmetry = 4
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 239861848 bytes (29982731 unsigned long longs) for nbr_offset @ 0x7bfd6c000000
+--- Allocating 1406845976 bytes (351711494 ints) for nbr_array @ 0x7bfc64000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 22111 MB, used 2000 MB
+--- Allocating 16 bytes (4 unsigneds) for d_bknbrs_ @ 0x7bfcb7e00200
+# Transfer time of the data graph, time (ms): 272(host), 272(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 21993 MB, used 2118 MB
+edge_list_bound: 2813691952 bytes, free_memory: 23061397504 bytes
+# join_bfs_dfs_sym
+# Generate the candidate sets for the first two vertices, time (ms): 201(host), 201(kernel)
+|C(0)| = 29972514
+Number of matches for the first edge: 351700342
+# Match the first edge, time (ms): 726(host), 726(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x7bfd57600000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x7bfcb7e00400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x7bfcb7e00600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x7bfcb7e20600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x7bfd50000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x7bfd52000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x7bfcb7e30600
+--- Allocating 2047 bytes (1 int) for d_temp_storage @ 0x7bfcb7e30800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x7bfcb7e30800
+Data preparation: 937 ms
+--- Allocating 16 bytes (4 uint32_t) for d_partial_order @ 0x7bfcb7e30a00
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 19235 MB, used 4876 MB
+Conducting DFS from level 3 to 4
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x7bfcb7e30c00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x7bfcb7e50c00
+Shared memory usage: 18.25 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 4317(host), 4317(kernel)
+[41;37m
+Result: 55932016868
+[0m
+unique count: 13983004217
+---
+Pattern p4:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p4.
+|V|=4 |E|=4 Unlabeled
+Max Degree=2
+Query vertices are renamed according to the matching order.
+N(0): 1 2 
+N(1): 0 3 
+N(2): 0 3 
+N(3): 1 2 
+|V|=2.99827e+07 |E|=1.7586e+08
+Data graph loaded from CSR format file ldbc/ldbc_sf10.bin
+|V|=29982730 |E|=175860387
+Max Degree=4282595
+Min Degree=1
+Avg Degree=11.7308
+#labels=1
+Removing one layer of degree < 2 vertices...
+Removed 4640 edges connected to degree < 2 vertices.
+Graph after removing degree < 2 vertices:
+|V|=29982730 |E|=175855747
+Max Degree=4282595
+Min Degree=0
+Avg Degree=11.73
+Graph loaded to host memory.
+Found 8 automorphisms of the query graph.
+0 -> 1
+0 -> 3
+1 -> 2
+Symmetry = 8
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 239861848 bytes (29982731 unsigned long longs) for nbr_offset @ 0x75a916000000
+--- Allocating 1406845976 bytes (351711494 ints) for nbr_array @ 0x75a80e000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 22111 MB, used 2000 MB
+--- Allocating 16 bytes (4 unsigneds) for d_bknbrs_ @ 0x75a861e00200
+# Transfer time of the data graph, time (ms): 324(host), 324(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 21993 MB, used 2118 MB
+edge_list_bound: 2813691952 bytes, free_memory: 23061397504 bytes
+# join_bfs_dfs_sym
+# Generate the candidate sets for the first two vertices, time (ms): 203(host), 203(kernel)
+|C(0)| = 29978086
+Number of matches for the first edge: 175855743
+# Match the first edge, time (ms): 32(host), 32(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x75a901600000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x75a861e00400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x75a861e00600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x75a861e20600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x75a8fa000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x75a8fc000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x75a861e30600
+--- Allocating 1279 bytes (1 int) for d_temp_storage @ 0x75a861e30800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x75a861e30800
+Data preparation: 243 ms
+--- Allocating 16 bytes (4 uint32_t) for d_partial_order @ 0x75a861e30a00
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 20577 MB, used 3534 MB
+Conducting DFS from level 3 to 4
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x75a861e30c00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x75a861e50c00
+Shared memory usage: 18.25 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 110907(host), 110900(kernel)
+[41;37m
+Result: 1436179086848
+[0m
+unique count: 179522385856
+---
+Pattern p5:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p5.
+|V|=5 |E|=7 Unlabeled
+Max Degree=3
+Matching order: 1 3 4 2 0 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 4 
+N(1): 0 2 3 
+N(2): 0 1 3 
+N(3): 1 2 4 
+N(4): 0 3 
+|V|=2.99827e+07 |E|=1.7586e+08
+Data graph loaded from CSR format file ldbc/ldbc_sf10.bin
+|V|=29982730 |E|=175860387
+Max Degree=4282595
+Min Degree=1
+Avg Degree=11.7308
+#labels=1
+Removing one layer of degree < 2 vertices...
+Removed 4640 edges connected to degree < 2 vertices.
+Graph after removing degree < 2 vertices:
+|V|=29982730 |E|=175855747
+Max Degree=4282595
+Min Degree=0
+Avg Degree=11.73
+Graph loaded to host memory.
+Found 4 automorphisms of the query graph.
+0 -> 3
+1 -> 2
+Symmetry = 4
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 239861848 bytes (29982731 unsigned long longs) for nbr_offset @ 0x79be94000000
+--- Allocating 1406845976 bytes (351711494 ints) for nbr_array @ 0x79bd8c000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 22111 MB, used 2000 MB
+--- Allocating 20 bytes (5 unsigneds) for d_bknbrs_ @ 0x79bddfe00200
+# Transfer time of the data graph, time (ms): 324(host), 324(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 21993 MB, used 2118 MB
+edge_list_bound: 2813691952 bytes, free_memory: 23061397504 bytes
+# join_bfs_dfs_sym
+# Generate the candidate sets for the first two vertices, time (ms): 211(host), 211(kernel)
+|C(0)| = 29972514
+Number of matches for the first edge: 351689202
+# Match the first edge, time (ms): 725(host), 725(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x79be7f600000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x79bddfe00400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x79bddfe00600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x79bddfe20600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x79be78000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x79be7a000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x79bddfe30600
+--- Allocating 2047 bytes (1 int) for d_temp_storage @ 0x79bddfe30800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x79bddfe30800
+Data preparation: 946 ms
+--- Allocating 20 bytes (5 uint32_t) for d_partial_order @ 0x79bddfe30a00
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 19235 MB, used 4876 MB
+Conducting DFS from level 3 to 5
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x79bddfe30c00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x79bddfe50c00
+Shared memory usage: 27.12 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 142160(host), 142152(kernel)
+[41;37m
+Result: 2356280683116
+[0m
+unique count: 589070170779
+---
+Pattern p6:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p6.
+|V|=5 |E|=8 Unlabeled
+Max Degree=4
+Matching order: 1 0 2 3 4 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 3 4 
+N(1): 0 2 
+N(2): 0 1 3 4 
+N(3): 0 2 4 
+N(4): 0 2 3 
+|V|=2.99827e+07 |E|=1.7586e+08
+Data graph loaded from CSR format file ldbc/ldbc_sf10.bin
+|V|=29982730 |E|=175860387
+Max Degree=4282595
+Min Degree=1
+Avg Degree=11.7308
+#labels=1
+Removing one layer of degree < 2 vertices...
+Removed 4640 edges connected to degree < 2 vertices.
+Graph after removing degree < 2 vertices:
+|V|=29982730 |E|=175855747
+Max Degree=4282595
+Min Degree=0
+Avg Degree=11.73
+Graph loaded to host memory.
+Found 4 automorphisms of the query graph.
+0 -> 2
+3 -> 4
+Symmetry = 4
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 239861848 bytes (29982731 unsigned long longs) for nbr_offset @ 0x778320000000
+--- Allocating 1406845976 bytes (351711494 ints) for nbr_array @ 0x778218000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 22111 MB, used 2000 MB
+--- Allocating 20 bytes (5 unsigneds) for d_bknbrs_ @ 0x77826be00200
+# Transfer time of the data graph, time (ms): 266(host), 265(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 21993 MB, used 2118 MB
+edge_list_bound: 2813691952 bytes, free_memory: 23061397504 bytes
+# join_bfs_dfs_sym
+# Generate the candidate sets for the first two vertices, time (ms): 203(host), 203(kernel)
+|C(0)| = 10493577
+Number of matches for the first edge: 293263531
+# Match the first edge, time (ms): 691(host), 690(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x778318c00000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x77826be00400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x77826be00600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x77826be20600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x778316000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x77833c000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x77826be30600
+--- Allocating 1791 bytes (1 int) for d_temp_storage @ 0x77826be30800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x77826be30800
+Data preparation: 900 ms
+--- Allocating 20 bytes (5 uint32_t) for d_partial_order @ 0x77826be30a00
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 19681 MB, used 4430 MB
+Conducting DFS from level 3 to 5
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x77826be30c00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x77826be50c00
+Shared memory usage: 27.12 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 180966(host), 180955(kernel)
+[41;37m
+Result: 297027626080
+[0m
+unique count: 74256906520
+---
+Pattern p7:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p7.
+|V|=5 |E|=8 Unlabeled
+Max Degree=4
+Matching order: 0 1 2 3 4 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 3 4 
+N(1): 0 2 3 
+N(2): 0 1 4 
+N(3): 0 1 4 
+N(4): 0 2 3 
+|V|=2.99827e+07 |E|=1.7586e+08
+Data graph loaded from CSR format file ldbc/ldbc_sf10.bin
+|V|=29982730 |E|=175860387
+Max Degree=4282595
+Min Degree=1
+Avg Degree=11.7308
+#labels=1
+Removing one layer of degree < 3 vertices...
+Removed 15784 edges connected to degree < 3 vertices.
+Graph after removing degree < 3 vertices:
+|V|=29982730 |E|=175844603
+Max Degree=4282595
+Min Degree=0
+Avg Degree=11.73
+Graph loaded to host memory.
+Found 8 automorphisms of the query graph.
+1 -> 2
+1 -> 4
+2 -> 3
+Symmetry = 8
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 239861848 bytes (29982731 unsigned long longs) for nbr_offset @ 0x7ad400000000
+--- Allocating 1406756824 bytes (351689206 ints) for nbr_array @ 0x7ad2f8000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 22111 MB, used 2000 MB
+--- Allocating 20 bytes (5 unsigneds) for d_bknbrs_ @ 0x7ad34be00200
+# Transfer time of the data graph, time (ms): 267(host), 267(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 21993 MB, used 2118 MB
+edge_list_bound: 2813513648 bytes, free_memory: 23061397504 bytes
+# join_bfs_dfs_sym
+# Generate the candidate sets for the first two vertices, time (ms): 209(host), 209(kernel)
+|C(0)| = 10493572
+Number of matches for the first edge: 293249882
+# Match the first edge, time (ms): 697(host), 697(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x7ad3f8c00000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x7ad34be00400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x7ad34be00600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x7ad34be20600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x7ad3f6000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x7ad41c000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x7ad34be30600
+--- Allocating 1791 bytes (1 int) for d_temp_storage @ 0x7ad34be30800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x7ad34be30800
+Data preparation: 913 ms
+--- Allocating 20 bytes (5 uint32_t) for d_partial_order @ 0x7ad34be30a00
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 19681 MB, used 4430 MB
+Conducting DFS from level 3 to 5
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x7ad34be30c00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x7ad34be50c00
+Shared memory usage: 27.12 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 84592(host), 84587(kernel)
+[41;37m
+Result: 247429007424
+[0m
+unique count: 30928625928
+---
+Pattern p8:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p8.
+|V|=5 |E|=9 Unlabeled
+Max Degree=4
+Matching order: 0 1 3 4 2 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 3 4 
+N(1): 0 2 3 
+N(2): 0 1 3 4 
+N(3): 0 1 2 4 
+N(4): 0 2 3 
+|V|=2.99827e+07 |E|=1.7586e+08
+Data graph loaded from CSR format file ldbc/ldbc_sf10.bin
+|V|=29982730 |E|=175860387
+Max Degree=4282595
+Min Degree=1
+Avg Degree=11.7308
+#labels=1
+Removing one layer of degree < 3 vertices...
+Removed 15784 edges connected to degree < 3 vertices.
+Graph after removing degree < 3 vertices:
+|V|=29982730 |E|=175844603
+Max Degree=4282595
+Min Degree=0
+Avg Degree=11.73
+Graph loaded to host memory.
+Found 12 automorphisms of the query graph.
+0 -> 2
+1 -> 4
+2 -> 3
+Symmetry = 12
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 239861848 bytes (29982731 unsigned long longs) for nbr_offset @ 0x7fc576000000
+--- Allocating 1406756824 bytes (351689206 ints) for nbr_array @ 0x7fc46e000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 22111 MB, used 2000 MB
+--- Allocating 20 bytes (5 unsigneds) for d_bknbrs_ @ 0x7fc4c1e00200
+# Transfer time of the data graph, time (ms): 319(host), 319(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 21993 MB, used 2118 MB
+edge_list_bound: 2813513648 bytes, free_memory: 23061397504 bytes
+# join_bfs_dfs_sym
+# Generate the candidate sets for the first two vertices, time (ms): 208(host), 208(kernel)
+|C(0)| = 10493572
+Number of matches for the first edge: 293249882
+# Match the first edge, time (ms): 694(host), 694(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x7fc56cc00000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x7fc4c1e00400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x7fc4c1e00600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x7fc4c1e20600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x7fc56a000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x7fc592000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x7fc4c1e30600
+--- Allocating 1791 bytes (1 int) for d_temp_storage @ 0x7fc4c1e30800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x7fc4c1e30800
+Data preparation: 909 ms
+--- Allocating 20 bytes (5 uint32_t) for d_partial_order @ 0x7fc4c1e30a00
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 19681 MB, used 4430 MB
+Conducting DFS from level 3 to 5
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x7fc4c1e30c00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x7fc4c1e50c00
+Shared memory usage: 27.12 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 8481(host), 8481(kernel)
+[41;37m
+Result: 36166369836
+[0m
+unique count: 3013864153
+---
+Pattern p9:
+#SM=128, #warp per SM=48, #total warp=6144
+[41;37mThe data graph is unlabeled.[0m
+[41;37mSymmetry breaking is enabled.[0m
+========================================
+Device 0: "NVIDIA GeForce RTX 4090"
+Total global memory: 24111.06 MBytes
+Maximum threads per block: 1024
+Compute capability: 8.9
+========================================
+Loading graph 0 / 0 1M vertices loaded.
+Graph loaded from file patterns/p9.
+|V|=5 |E|=10 Unlabeled
+Max Degree=4
+Matching order: 0 1 2 3 4 
+Query vertices are renamed according to the matching order.
+N(0): 1 2 3 4 
+N(1): 0 2 3 4 
+N(2): 0 1 3 4 
+N(3): 0 1 2 4 
+N(4): 0 1 2 3 
+|V|=2.99827e+07 |E|=1.7586e+08
+Data graph loaded from CSR format file ldbc/ldbc_sf10.bin
+|V|=29982730 |E|=175860387
+Max Degree=4282595
+Min Degree=1
+Avg Degree=11.7308
+#labels=1
+Removing one layer of degree < 4 vertices...
+Removed 58443897 edges connected to degree < 4 vertices.
+Graph after removing degree < 4 vertices:
+|V|=29982730 |E|=117416490
+Max Degree=1447590
+Min Degree=0
+Avg Degree=7.83
+Converted to DAG: |V|=29982730 |E|=117416490
+Graph loaded to host memory.
+Found 120 automorphisms of the query graph.
+0 -> 1
+1 -> 2
+2 -> 3
+3 -> 4
+Symmetry = 120
+# Device memory: total 24111 MB, available 23683 MB, used 428 MB
+--- Allocating 239861848 bytes (29982731 unsigned long longs) for nbr_offset @ 0x70f9e8000000
+--- Allocating 469665960 bytes (117416490 ints) for nbr_array @ 0x70f980000000
+CSR edges copied to device!
+# Device memory: total 24111 MB, available 23005 MB, used 1106 MB
+--- Allocating 20 bytes (5 unsigneds) for d_bknbrs_ @ 0x70f9f6600200
+# Transfer time of the data graph, time (ms): 142(host), 130(kernel)
+Graph loaded to device memory.
+# Device memory: total 24111 MB, available 22887 MB, used 1224 MB
+edge_list_bound: 939331920 bytes, free_memory: 23998824448 bytes
+# join_bfs_dfs
+# Generate the candidate sets for the first two vertices, time (ms): 263(host), 263(kernel)
+|C(0)| = 10412851
+Number of matches for the first edge: 117277317
+# Match the first edge, time (ms): 16(host), 16(kernel)
+--- Allocating 8388608 bytes (2097152 int) for cnt_prefix_sum @ 0x70f9e4a00000
+--- Allocating 8 bytes (2 int) for tot_partial_cnt @ 0x70f9f6600400
+--- Allocating 131072 bytes (16384 int *) for prev_head @ 0x70f9f6600600
+--- Allocating 65536 bytes (16384 int) for blk_write_cnt @ 0x70f9f6620600
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[0] @ 0x70f9e2000000
+--- Allocating 33554432 bytes (2097152 partial_props) for _props_array[1] @ 0x70fa04000000
+--- Allocating 120 bytes (1 MemManager) for d_MM @ 0x70f9f6630600
+--- Allocating 1023 bytes (1 int) for d_temp_storage @ 0x70f9f6630800
+BFS kernel theoretical occupancy 66.67%
+--- Allocating 4 bytes (1 int) for d_error_flag @ 0x70f9f6630800
+Data preparation: 281 ms
+# BFS Finished, time (ms): 0(host), 0(kernel)
+# Device memory: total 24111 MB, available 21917 MB, used 2194 MB
+Conducting DFS from level 3 to 5
+--- Allocating 131072 bytes (16384 ull) for d_sum @ 0x70f9f6630a00
+--- Allocating 4 bytes (1 int) for begin_offset @ 0x70f9f6650a00
+Shared memory usage: 27.12 KB per thread block
+DFS kernel theoretical occupancy 100.00%
+#thread blocks per SM: 3, #SMs: 128, #threads per block: 512
+# Processing, time (ms): 317(host), 317(kernel)
+[41;37m
+Result: 5062485360
+[0m
+unique count: 42187378
+---
